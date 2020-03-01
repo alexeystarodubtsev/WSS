@@ -1,0 +1,28 @@
+<h1 style="margin: 10px">Застрявшие номера</h1>
+<label class="btn btn-default btn-file" style="margin:10px">
+  Выбрать файл
+  <input type="file" (change)="uploadfile($event)" style="display:none" accept=".xlsx" />
+</label>
+<div style="font-size:small;margin-left:10px; color:tan" >
+  {{testDoc?.name}}
+</div>
+
+<input type="button" value="Получить номера" class="btn btn-default" (click)="getPhones()" style="margin:10px" [attr.disabled]="hasFile ?  null : ''" />
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Этап звонка</th>
+      <th>Номер телефона</th>
+      <th>Количество повторных звонков</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let p of phones">
+      <td>{{p?.stage}}</td>
+      <td>{{p?.phone}}</td>
+      <td>{{p?.qty}}</td>
+    </tr>
+  </tbody>
+</table>
+
+
