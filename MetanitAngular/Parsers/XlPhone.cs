@@ -1,57 +1,106 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
 using MetanitAngular.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace MetanitAngular.Parsers
 {
     public class XlPhone
     {
-        public static IEnumerable<Phone> getPhone(string filePath)
+        
+
+        public static Tuple<List<Phone>, List<Phone>> getPhone(IFormFileCollection files)
         {
+            Dictionary<string, Dictionary<string, Tuple<int, string>>> dict = new Dictionary<string, Dictionary<string, Tuple<int, string>>>();
+            Dictionary<string, Tuple<int,string,string>> dictPhone = new Dictionary<string, Tuple<int, string, string>>();
             List<Phone> phones = new List<Phone>();
-
-            XLWorkbook wb = new XLWorkbook(filePath);
-            
-            
-            IXLWorksheet sheet = wb.Worksheets.First();
-            int curRow = 2;
-            int startCol = 2;
-            int numColStage = 1;
-            IXLCell cell = sheet.Cell(curRow, startCol);
-            while (!(cell.GetValue<string>() == ""))
+            List<Phone> OnlyOneCall = new List<Phone>();
+             
+            foreach (var file in files)
             {
-                Dictionary<string, int> dictPhones = new Dictionary<string, int>();
-                while (!(cell.GetValue<string>() == ""))
+                using (var stream = file.OpenReadStream())
                 {
-                    string cphone = cell.GetValue<string>();
-                    if (!dictPhones.ContainsKey(cphone))
+                    XLWorkbook wb = new XLWorkbook(stream);
+                    foreach (var page in wb.Worksheets)
                     {
-                        dictPhones[cphone] = 0;
-                    }
-                    dictPhones[cphone]++;
-                    cell = cell.CellRight();
+                        if (page.Name.ToUpper() != "СТАТИСТИКА" && page.Name.ToUpper() != "СВОДНАЯ")
+                        {
+                            if (!dict.ContainsKey(page.Name.ToUpper()))
+                            {
+                                dict[page.Name.ToUpper()] = new Dictionary<string, Tuple<int, string>>();
+                            }
+                            IXLCell cell = page.Cell(1, 5);
+                            DateTime curDate;
+                            DateTime.TryParse(cell.GetValue<string>(), out curDate);
+                            string phoneNumber;
+                            while (!(cell.IsEmpty() && cell.CellRight().IsEmpty() && !cell.IsMerged()))
+                            {
+                                if (cell.GetValue<string>() != "")
+                                {
+                                    DateTime.TryParse(cell.GetValue<string>(), out curDate);
+                                }
 
-                }
-                foreach (var keyValue in dictPhones)
-                {
-                    if (keyValue.Value > 1)
-                    {
-                        Phone phone = new Phone();
-                        phone.phone = keyValue.Key;
-                        phone.qty = keyValue.Value;
-                        phone.stage = sheet.Cell(curRow, numColStage).GetValue<string>();
-                        phones.Add(phone);
+                                phoneNumber = cell.CellBelow().GetValue<string>().ToUpper();
+                                if (phoneNumber != "")
+                                {
+
+                                    if (!dict[page.Name.ToUpper()].ContainsKey(phoneNumber))
+                                    {
+                                        dict[page.Name.ToUpper()][phoneNumber] = new Tuple<int, string>(1, String.Format("{0:dd.MM.yy}", curDate));
+                                    }
+                                    else
+                                    {
+                                        int curQty = dict[page.Name.ToUpper()][phoneNumber].Item1;
+                                        string curDates = dict[page.Name.ToUpper()][phoneNumber].Item2;
+                                        curQty++;
+                                        curDates = curDates + ", " + String.Format("{0:dd.MM.yy}", curDate);
+                                        dict[page.Name.ToUpper()][phoneNumber] = new Tuple<int, string>(curQty, curDates);
+                                    }
+                                    if (!dictPhone.ContainsKey(phoneNumber))
+                                    {
+                                        var data = new Tuple<int, string, string>(1, page.Name.ToUpper(), String.Format("{0:dd.MM.yy}", curDate));
+                                        dictPhone[phoneNumber] = data;
+                                    }
+                                    else
+                                    {
+                                        dictPhone[phoneNumber] = new Tuple<int, string, string>(3, "", "");
+                                    }
+                                }
+
+                                cell = cell.CellRight();
+                            }
+
+                        }
                     }
                 }
-
-                curRow++;
-                cell = sheet.Cell(curRow, startCol);
+                
             }
+            
+            foreach (var dictStage in dict)
+            {
+                foreach (var phone in dictStage.Value)
+                {
+                    if (phone.Value.Item1 > 1)
+                    {
+                        phones.Add(new Phone(phone.Key, phone.Value.Item1, dictStage.Key, phone.Value.Item2));
+                    }
+                }
+            }
+            foreach (var phone in dictPhone)
+            {
+                if (phone.Value.Item1 == 1)
+                {
+                    OnlyOneCall.Add(new Phone(phone.Key, phone.Value.Item1, phone.Value.Item2, phone.Value.Item3));
+                }
 
-            return phones;
+            }
+            Tuple<List<Phone>, List<Phone>> returnPhones;
+            returnPhones = new Tuple<List<Phone>, List<Phone>>(phones, OnlyOneCall);
+                return returnPhones;
         }
     }
 }

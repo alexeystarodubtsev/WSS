@@ -1,10 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Phone = /** @class */ (function () {
-    function Phone(qty, phone, stage) {
+    function Phone(qty, phoneNumber, stage, date) {
         this.qty = qty;
-        this.phone = phone;
+        this.phoneNumber = phoneNumber;
         this.stage = stage;
+        this.date = date;
     }
     return Phone;
 }());

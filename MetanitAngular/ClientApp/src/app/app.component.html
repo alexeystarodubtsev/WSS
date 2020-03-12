@@ -1,28 +1,50 @@
 <h1 style="margin: 10px">Застрявшие номера</h1>
 <label class="btn btn-default btn-file" style="margin:10px">
   Выбрать файл
-  <input type="file" (change)="uploadfile($event)" style="display:none" accept=".xlsx" />
+  <input type="file" (change)="uploadfile($event)" style="display:none" accept=".xlsx, .xlsm" multiple="multiple" />
 </label>
-<div style="font-size:small;margin-left:10px; color:tan" >
-  {{testDoc?.name}}
+<div *ngFor="let file of Attachments" style="font-size:small;margin-left:10px; color:tan">
+  {{file?.name}}
 </div>
 
 <input type="button" value="Получить номера" class="btn btn-default" (click)="getPhones()" style="margin:10px" [attr.disabled]="hasFile ?  null : ''" />
-<table class="table table-striped">
+<button [className] ="firstMode ? 'btn btn-primary': 'btn btn-default'" (click)="ChangeMode(true)">Клиенты, застрявшие на этапе</button>
+<button [className] ="firstMode ? 'btn btn-default': 'btn btn-primary'" (click)="ChangeMode(false)">Клиенты с одним звонком</button>
+<table *ngIf ="firstMode; else secondTable" class="table table-striped">
   <thead>
     <tr>
       <th>Этап звонка</th>
-      <th>Номер телефона</th>
+      <th>Клиент</th>
       <th>Количество повторных звонков</th>
+      <th>Даты звонков</th>
     </tr>
   </thead>
   <tbody>
     <tr *ngFor="let p of phones">
       <td>{{p?.stage}}</td>
-      <td>{{p?.phone}}</td>
+      <td>{{p?.phoneNumber}}</td>
       <td>{{p?.qty}}</td>
+      <td>{{p?.date}}</td>
     </tr>
   </tbody>
 </table>
+<ng-template #secondTable>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Этап звонка</th>
+        <th>Клиент</th>
+        <th>Даты звонков</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of OnlyOnePhones">
+        <td>{{p?.stage}}</td>
+        <td>{{p?.phoneNumber}}</td>
+        <td>{{p?.date}}</td>
+      </tr>
+    </tbody>
+  </table>
+</ng-template>
 
 

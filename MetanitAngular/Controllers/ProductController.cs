@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using MetanitAngular.Parsers;
+using System.Collections.ObjectModel;
+using System;
 
 namespace MetanitAngular.Controllers
 {
@@ -62,16 +64,9 @@ namespace MetanitAngular.Controllers
         //    return BadRequest(ModelState);
         //}
         [HttpPost]
-        public IEnumerable<Phone> Post()
+        public Tuple<List<Phone>, List<Phone>> Post()
         {
-            var file = Request.Form.Files[0];
-            string pathDir = Path.Combine(Directory.GetCurrentDirectory(), "resourses");
-            string pathFile = Path.Combine(pathDir, System.IO.Path.GetFileName(file.FileName));
-            using (var stream = new FileStream(pathFile, FileMode.Create))
-            {
-                file.CopyTo(stream);
-            }
-            return XlPhone.getPhone(pathFile);
+            return XlPhone.getPhone(Request.Form.Files);
         }
         [HttpPut]
         public IActionResult Put(Product product)

@@ -13,9 +13,11 @@ export class AppComponent implements OnInit {
   product: Product = new Product();   // изменяемый товар
   products: Product[];                // массив товаров
   tableMode: boolean = true;          // табличный режим
-  testDoc: File;
+  Attachments: File[];
   phones: Phone[];
+  OnlyOnePhones: Phone[];
   hasFile: boolean = false;
+  firstMode: boolean = true;
   constructor(private dataService: DataService) { }
 
   ngOnInit() {
@@ -54,12 +56,15 @@ export class AppComponent implements OnInit {
   }
   getPhones() {
     const formData = new FormData();
-
-
-    formData.append(this.testDoc.name, this.testDoc);
-
+    for (let i = 0; i < this.Attachments.length; i++) {
+      formData.append(this.Attachments[i].name, this.Attachments[i])
+    }
+      
     this.dataService.postFile(formData)
-      .subscribe((data: Phone[]) => this.phones = data)
+      .subscribe((data: JSON) => {
+        this.phones = data["item1"];
+        this.OnlyOnePhones = data["item2"];
+      })
   }
   uploadfile(event) {
     if (event.target.files.length > 0) {
@@ -68,9 +73,12 @@ export class AppComponent implements OnInit {
     else {
       this.hasFile = false;
     }
-    this.testDoc = <File>event.target.files[0];
+    this.Attachments = event.target.files;
 
 
+  }
+  ChangeMode(mode: boolean) {
+    this.firstMode = mode;
   }
 }
   
