@@ -4,7 +4,7 @@
   <input type="file" (change)="uploadfile($event)" style="display:none" accept=".xlsx, .xlsm" multiple="multiple" />
 </label>
 <div *ngFor="let file of Attachments" style="font-size:small;margin-left:10px; color:tan">
-  {{file?.name}}
+  {{file?.name}} 
 </div>
 
 <input type="button" value="Получить номера" class="btn btn-default" (click)="getPhones()" style="margin:10px" [attr.disabled]="hasFile ?  null : ''" />
