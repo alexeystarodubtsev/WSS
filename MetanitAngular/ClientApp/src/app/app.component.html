@@ -10,6 +10,7 @@
 <input type="button" value="Получить номера" class="btn btn-default" (click)="getPhones()" style="margin:10px" [attr.disabled]="hasFile ?  null : ''" />
 <button [className] ="firstMode ? 'btn btn-primary': 'btn btn-default'" (click)="ChangeMode(true)">Клиенты, застрявшие на этапе</button>
 <button [className] ="firstMode ? 'btn btn-default': 'btn btn-primary'" (click)="ChangeMode(false)">Клиенты с одним звонком</button>
+<input class="form-control" [(ngModel)]="nameout" placeholder="Введите название выходного файла" />
 <table *ngIf ="firstMode; else secondTable" class="table table-striped">
   <thead>
     <tr>

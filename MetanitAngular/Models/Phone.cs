@@ -7,16 +7,18 @@ namespace MetanitAngular.Models
 {
     public class Phone
     {
-        public string PhoneNumber { get; set; }
-        public int Qty { get; set; }
-        public string Stage { get; set; }
-        public string Date { get; set; }
-        public Phone(string phone, int qty, string stage, string date)
+        public Dictionary<string, List<OneCall>> stages;
+        public Phone()
         {
-            PhoneNumber = phone;
-            Qty = qty;
-            Stage = stage;
-            Date = date;
+            stages = new Dictionary<string, List<OneCall>>();
         }
+        public void AddCall(FullCall call)
+        {
+            if (!stages.ContainsKey(call.stage.ToUpper()))
+            {
+                stages[call.stage.ToUpper()] = new List<OneCall>();
+            }
+            stages[call.stage.ToUpper()].Add(new OneCall(call));
+        } 
     }
 }

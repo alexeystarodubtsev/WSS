@@ -66,7 +66,8 @@ namespace MetanitAngular.Controllers
         [HttpPost]
         public Tuple<List<Phone>, List<Phone>> Post()
         {
-            return XlPhone.getPhone(Request.Form.Files);
+            string nameoutput = Request.Form.Keys.First();
+            return XlPhone.getPhoneNew(Request.Form.Files, nameoutput);
         }
         [HttpPut]
         public IActionResult Put(Product product)

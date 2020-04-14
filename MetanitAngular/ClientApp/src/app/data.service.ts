@@ -29,7 +29,6 @@ export class DataService {
     return this.http.delete(this.url + '/' + id);
   }
   postFile(doc) {
-    
     return this.http.post(this.url, doc);
   }
 }

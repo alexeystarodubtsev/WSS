@@ -18,6 +18,7 @@ export class AppComponent implements OnInit {
   OnlyOnePhones: Phone[];
   hasFile: boolean = false;
   firstMode: boolean = true;
+  nameout: string ="";
   constructor(private dataService: DataService) { }
 
   ngOnInit() {
@@ -59,7 +60,7 @@ export class AppComponent implements OnInit {
     for (let i = 0; i < this.Attachments.length; i++) {
       formData.append(this.Attachments[i].name, this.Attachments[i])
     }
-      
+    formData.set(this.nameout, this.nameout);
     this.dataService.postFile(formData)
       .subscribe((data: JSON) => {
         this.phones = data["item1"];
