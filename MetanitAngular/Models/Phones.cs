@@ -18,11 +18,22 @@ namespace MetanitAngular.Models
         }
         public void AddCall(FullCall call)
         {
-            if (!Calls.ContainsKey(call.phoneNumber))
+            string phoneKey = "";
+            if (call.Link != "")
             {
-                Calls[call.phoneNumber] = new Phone();
+                phoneKey = call.Link;
+                
             }
-            Calls[call.phoneNumber].AddCall(call);
+            else
+            {
+                phoneKey = call.phoneNumber;
+            }
+            if (!Calls.ContainsKey(phoneKey))
+            {
+                Calls[phoneKey] = new Phone(call.Link, call.phoneNumber);
+            }
+            Calls[phoneKey].AddCall(call);
+
         }
         public Dictionary<string, Phone> getPhones()
         {

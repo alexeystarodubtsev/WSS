@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ClosedXML;
+using ClosedXML.Excel;
 
 namespace MetanitAngular.Models
 {
@@ -12,13 +14,17 @@ namespace MetanitAngular.Models
         public DateTime date;
         public bool outgoing;
         public string Comment;
-        public FullCall(string phoneNumber, string stage, DateTime date, bool outgoing, string Comment)
+        public string Link;
+        public string Manager;
+        public FullCall(string phoneNumber, string link, string stage, DateTime date, bool outgoing, string Comment, string Manager)
         {
             this.date = date;
             this.phoneNumber = phoneNumber;
             this.stage = stage;
             this.outgoing = outgoing;
             this.Comment = Comment;
+            this.Link = link;
+            this.Manager = Manager;
             
         }
     }

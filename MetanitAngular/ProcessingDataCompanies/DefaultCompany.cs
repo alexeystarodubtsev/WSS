@@ -3,19 +3,25 @@ using MetanitAngular.Models;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static MetanitAngular.Excel.DataStructsForPrintCalls;
-
+using  MetanitAngular.Excel;
 namespace MetanitAngular.ProcessingDataCompanies
 {
     public class DefaultCompany : ICompany
     {
-        Phones phones = new Phones();
-        string AgreementStage = "";
-        string PreAgreementStage = "";
-        
+        protected Phones phones = new Phones();
+        protected string AgreementStage = "";
+        protected string PreAgreementStage = "";
+        protected List<ProcessedCall> processedCalls;
+
+        public DefaultCompany(List<ProcessedCall> processedCalls)
+        {
+            this.processedCalls = processedCalls;
+        }
         public void AddCall(FullCall call)
         {
             phones.AddCall(call);
@@ -27,11 +33,13 @@ namespace MetanitAngular.ProcessingDataCompanies
 
             foreach (var call in phones.getPhones())
             {
-                FullCall LastCall = new FullCall(call.Key,
+                FullCall LastCall = new FullCall(call.Value.phoneNumber,
+                call.Value.link,
                 call.Value.stages.First().Key,
                 call.Value.stages.First().Value.First().Date,
                 call.Value.stages.First().Value.First().Outgoing,
-                call.Value.stages.First().Value.First().comment);
+                call.Value.stages.First().Value.First().comment,
+                call.Value.GetManager());
                 foreach (var stage in call.Value.stages)
                 {
                     foreach (var curCall in stage.Value)
@@ -49,7 +57,12 @@ namespace MetanitAngular.ProcessingDataCompanies
                 }
                 if (!LastCall.outgoing && !call.Value.stages.ContainsKey(AgreementStage))
                 {
-                    returnCalls.Add(new CallIncoming(call.Key, String.Format("{0:dd.MM.yy}", LastCall.date), LastCall.Comment));
+                    var AddedCall = new ProcessedCall();
+                    AddedCall.Client = call.Value.phoneNumber;
+                    AddedCall.Link = call.Value.link;
+                    AddedCall.Comment = LastCall.Comment;
+                    if (!InputDoc.hasPhone(processedCalls, AddedCall))
+                        returnCalls.Add(new CallIncoming(call.Value.phoneNumber, call.Value.link, String.Format("{0:dd.MM.yy}", LastCall.date), LastCall.Comment, call.Value.GetManager()));
                 }
             }
 
@@ -67,11 +80,13 @@ namespace MetanitAngular.ProcessingDataCompanies
             foreach (var call in phones.getPhones())
             {
 
-                FullCall LastCall = new FullCall(call.Key,
+                FullCall LastCall = new FullCall(call.Value.phoneNumber,
+                call.Value.link,
                 call.Value.stages.First().Key,
                 call.Value.stages.First().Value.First().Date,
                 call.Value.stages.First().Value.First().Outgoing,
-                call.Value.stages.First().Value.First().comment);
+                call.Value.stages.First().Value.First().comment,
+                call.Value.GetManager());
                 foreach (var stage in call.Value.stages)
                 {
                     foreach (var curCall in stage.Value)
@@ -90,15 +105,18 @@ namespace MetanitAngular.ProcessingDataCompanies
 
                 TimeSpan t1 = DateTime.Now.Subtract(LastCall.date);
 
-                if (t1.TotalDays >= 7 && !call.Value.stages.ContainsKey(AgreementStage))
+                if (t1.TotalDays >= 23 && !call.Value.stages.ContainsKey(AgreementStage))
                 {
                     CallPerWeek curCall = new CallPerWeek();
                     curCall.FirstWeek = "-";
-                    curCall.phoneNumber = call.Key;
+                    curCall.phoneNumber = call.Value.phoneNumber;
+                    curCall.Manager = call.Value.GetManager();
+                    if (call.Value.link != "")
+                        curCall.Link = new XLHyperlink(new Uri(call.Value.link));
                     curCall.comment = LastCall.Comment;
                     if (!LastCall.outgoing)
                         curCall.comment = curCall.comment + " (Входящий)";
-                    if (t1.TotalDays >= 14)
+                    if (t1.TotalDays >= 30)
                     {
                         curCall.SecondWeek = "-";
                     }
@@ -106,15 +124,20 @@ namespace MetanitAngular.ProcessingDataCompanies
                     {
                         curCall.SecondWeek = "+";
                     }
-                    if (t1.TotalDays >= 21)
-                    {
-                        curCall.ThirdWeek = "-";
-                    }
-                    else
-                    {
-                        curCall.ThirdWeek = "+";
-                    }
-                    returnCalls.Add(curCall);
+                    //if (t1.TotalDays >= 22)
+                    //{
+                    //    curCall.ThirdWeek = "-";
+                    //}
+                    //else
+                    //{
+                    //    curCall.ThirdWeek = "+";
+                    //}
+                    var AddedCall = new ProcessedCall();
+                    AddedCall.Client = curCall.phoneNumber;
+                    AddedCall.Link = call.Value.link;
+                    AddedCall.Comment = curCall.comment;
+                    if (!InputDoc.hasPhone(processedCalls, AddedCall))
+                        returnCalls.Add(curCall);
                 }
                 
             }
@@ -146,11 +169,12 @@ namespace MetanitAngular.ProcessingDataCompanies
                     {
                         if (call.Date > FirstCall.Date)
                         {
+                            OneCall addcall = (OneCall)call.Clone();
                             if (stage.Key != lastStage)
                             {
-                                call.comment = call.comment + " (" + stage.Key + ")";
+                                addcall.comment = call.comment + " (" + stage.Key + ")";
                             }
-                            dt.Add(call);
+                            dt.Add(addcall);
                         }
                     }
                 }
@@ -158,7 +182,11 @@ namespace MetanitAngular.ProcessingDataCompanies
                 if (lastStage != AgreementStage && dt.Count > 1)
                 {
                     CallOneStage curCall = new CallOneStage();
-                    curCall.phoneNumber = phone.Key;
+
+                    curCall.phoneNumber = phone.Value.phoneNumber;
+                    curCall.Manager = phone.Value.GetManager();
+                    if (phone.Value.link != "")
+                        curCall.Link = new XLHyperlink(new Uri(phone.Value.link));
                     curCall.qty = dt.Count.ToString();
                     curCall.stage = lastStage;
                     curCall.date = "";
@@ -176,7 +204,12 @@ namespace MetanitAngular.ProcessingDataCompanies
                     }
                     curCall.date = curCall.date.TrimEnd(' ').Trim(',');
                     curCall.comment = comment;
-                    returnCalls.Add(curCall);
+                    var AddedCall = new ProcessedCall();
+                    AddedCall.Client = phone.Value.phoneNumber;
+                    AddedCall.Link = phone.Value.link;
+                    AddedCall.Comment = curCall.comment;
+                    if (!InputDoc.hasPhone(processedCalls, AddedCall))
+                        returnCalls.Add(curCall);
                 }
             }
             return returnCalls;
@@ -277,13 +310,17 @@ namespace MetanitAngular.ProcessingDataCompanies
                         {
                             if ( LastCall.Date < call.Date)
                             {
-                                LastCall = call;
+                                LastCall = (OneCall)call.Clone();
                                 if (stage.Key != lastStage)
                                     LastCall.comment = LastCall.comment + " (" + stage.Key + ") ";
                             }
                         }
                     }
-                    returnCalls.Add(new CallPreAgreement(phone.Key, String.Format("{0:dd.MM.yy}", LastCall.Date), LastCall.comment, lastStage));
+                    var AddedCall = new ProcessedCall();
+                    AddedCall.Client = phone.Value.phoneNumber;
+                    AddedCall.Comment = LastCall.comment;
+                    if (!InputDoc.hasPhone(processedCalls,AddedCall))
+                      returnCalls.Add(new CallPreAgreement(phone.Value.phoneNumber,phone.Value.link, String.Format("{0:dd.MM.yy}", LastCall.Date), LastCall.comment, lastStage, phone.Value.GetManager()));
                 }
 
 
@@ -291,9 +328,9 @@ namespace MetanitAngular.ProcessingDataCompanies
             }
             return returnCalls;
         }
-        public void ParserCheckLists(IFormFileCollection files)
+        public void ParserCheckLists(IEnumerable<IFormFile> files)
         {
-            using (var stream = files[0].OpenReadStream())
+            using (var stream = files.First().OpenReadStream())
             {
                 XLWorkbook wb = new XLWorkbook(stream);
                 FillStageDictionary(wb);
@@ -301,17 +338,21 @@ namespace MetanitAngular.ProcessingDataCompanies
 
             foreach (var file in files)
             {
+                string Manager = Regex.Match(file.FileName, @"(\w+)").Groups[1].Value;
                 using (var stream = file.OpenReadStream())
                 {
                     XLWorkbook wb = new XLWorkbook(stream);
+                    
                     foreach (var page in wb.Worksheets)
                     {
-                        if (page.Name.ToUpper().Trim() != "СТАТИСТИКА" && page.Name.ToUpper().Trim() != "СВОДНАЯ")
+                        var statisticMatch = Regex.Match(page.Name.ToUpper().Trim(), "СТАТИСТИК");
+                        var LastTableMatch = Regex.Match(page.Name.ToUpper().Trim(), "СВОДН");
+                        if (!statisticMatch.Success && !LastTableMatch.Success)
                         {
 
                             IXLCell cell = page.Cell(1, 5);
                             DateTime curDate;
-                            DateTime.TryParse(cell.GetValue<string>(), out curDate);
+                            DateTime.TryParse(cell.GetValue<string>(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate);
                             string phoneNumber;
                             int corrRow = 5;
                             Match Mcomment = Regex.Match(page.Cell(corrRow, 1).GetString().ToUpper(), @"КОРРЕКЦИИ");
@@ -324,14 +365,35 @@ namespace MetanitAngular.ProcessingDataCompanies
                             {
                                 if (cell.GetValue<string>() != "")
                                 {
-                                    DateTime.TryParse(cell.GetValue<string>(), out curDate);
+                                    DateTime.TryParse(cell.GetValue<string>(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate);
                                 }
                                 phoneNumber = cell.CellBelow().GetValue<string>().ToUpper().Trim();
+                                var CellPhoneNumber = cell.CellBelow();
+                                string link;
+                                if (CellPhoneNumber.HasHyperlink)
+                                    link = CellPhoneNumber.GetHyperlink().ExternalAddress.AbsoluteUri;
+                                else
+                                    link = "";
+                                
                                 if (phoneNumber != "")
                                 {
                                     Regex rx = new Regex("ВХОДЯЩ");
                                     Match m = rx.Match(page.Name.ToUpper().Trim());
-                                    phones.AddCall(new FullCall(phoneNumber, page.Name.ToUpper().Trim(), curDate, !m.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString()));
+                                    var exCallSeq = processedCalls.Where(c => (c.Client == phoneNumber && link == "") || (c.Link == link && link != ""));
+                                    var exCall = new ProcessedCall();
+                                    exCall.StartDateAnalyze = curDate.AddDays(-1);
+                                    if (exCallSeq.Count() > 0)
+                                        exCall = exCallSeq.First();
+                                    else
+                                    {
+
+                                    }
+                                    if (curDate >= exCall.StartDateAnalyze ||
+                                        (
+                                          exCall.ClientState.ToUpper() == "В РАБОТЕ") &&
+                                          exCall.StartDateAnalyze < DateTime.Now
+                                    )
+                                        phones.AddCall(new FullCall(phoneNumber, link, page.Name.ToUpper().Trim(), curDate, !m.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(),Manager));
 
                                 }
 

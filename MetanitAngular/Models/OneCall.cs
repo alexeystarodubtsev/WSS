@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MetanitAngular.Models
 {
-    public class OneCall
+    public class OneCall : ICloneable
     {
         public DateTime Date;
         public bool Outgoing;
@@ -15,6 +15,10 @@ namespace MetanitAngular.Models
             Date = call.date;
             this.Outgoing = call.outgoing;
             comment = call.Comment;
+        }
+        public object Clone()
+        {
+            return this.MemberwiseClone();
         }
     }
 }

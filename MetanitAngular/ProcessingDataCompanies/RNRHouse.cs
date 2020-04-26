@@ -1,0 +1,100 @@
+﻿using ClosedXML.Excel;
+using MetanitAngular.Models;
+using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using static MetanitAngular.Excel.DataStructsForPrintCalls;
+
+namespace MetanitAngular.ProcessingDataCompanies
+{
+    public class RNRHouse : DefaultCompany, ICompany
+    {
+        public RNRHouse(List<ProcessedCall> processedCalls) : base(processedCalls)
+        {
+
+        }
+        public new void ParserCheckLists(IEnumerable<IFormFile> files)
+        {
+            using (var stream = files.First().OpenReadStream())
+            {
+                XLWorkbook wb = new XLWorkbook(stream);
+                FillStageDictionary(wb);
+            }
+
+            foreach (var file in files)
+            {
+                string Manager = Regex.Match(file.FileName, @"(\w+)").Groups[1].Value;
+
+                using (var stream = file.OpenReadStream())
+                {
+                    XLWorkbook wb = new XLWorkbook(stream);
+
+                    foreach (var page in wb.Worksheets)
+                    {
+                        var statisticMatch = Regex.Match(page.Name.ToUpper().Trim(), "СТАТИСТИК");
+                        var LastTableMatch = Regex.Match(page.Name.ToUpper().Trim(), "СВОДН");
+                        if (!statisticMatch.Success && !LastTableMatch.Success)
+                        {
+
+                            IXLCell cell = page.Cell(2, 6);
+                            DateTime curDate;
+                            DateTime.TryParse(cell.GetValue<string>(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate);
+                            string phoneNumber;
+                            int corrRow = 5;
+                            Match Mcomment = Regex.Match(page.Cell(corrRow, 1).GetString().ToUpper(), @"КОРРЕКЦИИ");
+                            while (!Mcomment.Success)
+                            {
+                                corrRow++;
+                                Mcomment = Regex.Match(page.Cell(corrRow, 1).GetString().ToUpper(), @"КОРРЕКЦИИ");
+                            }
+                            while (!(cell.CellBelow().IsEmpty() && cell.CellBelow().CellRight().IsEmpty() && !cell.CellBelow().IsMerged()))
+                            {
+                                if (cell.GetValue<string>() != "")
+                                {
+                                    DateTime.TryParse(cell.GetValue<string>(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate);
+                                }
+                                phoneNumber = cell.CellBelow().GetValue<string>().ToUpper().Trim();
+                                
+
+                                if (phoneNumber != "")
+                                {
+                                    var CellPhoneNumber = cell.CellBelow();
+                                    string link;
+                                    if (CellPhoneNumber.HasHyperlink)
+                                        link = CellPhoneNumber.GetHyperlink().ExternalAddress.AbsoluteUri;
+                                    else
+                                        link = "";
+                                    Regex rx = new Regex("ВХОДЯЩ");
+                                    Match m = rx.Match(page.Name.ToUpper().Trim());
+                                    var exCallSeq = processedCalls.Where(c => (c.Client == phoneNumber && link == "") || (c.Link == link && link != ""));
+                                    var exCall = new ProcessedCall();
+                                    exCall.StartDateAnalyze = curDate.AddDays(-1);
+                                    if (exCallSeq.Count() > 0)
+                                        exCall = exCallSeq.First();
+                                    else
+                                    {
+
+                                    }
+                                    if (curDate >= exCall.StartDateAnalyze ||
+                                        (
+                                          exCall.ClientState.ToUpper() == "В РАБОТЕ") &&
+                                          exCall.StartDateAnalyze < DateTime.Now
+                                    )
+                                        phones.AddCall(new FullCall(phoneNumber, link, page.Name.ToUpper().Trim(), curDate, !m.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(),Manager));
+
+                                }
+
+                                cell = cell.CellRight();
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -9,6 +9,7 @@ using MetanitAngular.Excel;
 using MetanitAngular.Models;
 using MetanitAngular.ProcessingDataCompanies;
 using Microsoft.AspNetCore.Http;
+using static MetanitAngular.Excel.DataStructsForPrintCalls;
 
 namespace MetanitAngular.Parsers
 {
@@ -158,21 +159,43 @@ namespace MetanitAngular.Parsers
 
         public static Tuple<List<Phone>, List<Phone>> getPhoneNew(IFormFileCollection files, string nameoutput)
         {
+            List<ProcessedCall> processedCalls = new List<ProcessedCall>();
+            try
+            {
+                var lastCommentsFile = files.Where(c => Regex.Match(c.FileName.ToUpper(),"ПРЕДЫДУЩАЯ АНАЛИТИКА").Success).First();
+                processedCalls = InputDoc.GetProcessedCalls(lastCommentsFile);
+            }
+            catch (InvalidOperationException)
+            {
+
+            }
+            var FilesManagers = files.Where(c => !Regex.Match(c.FileName.ToUpper(), "ПРЕДЫДУЩАЯ АНАЛИТИКА").Success);
             //Dictionary<string, List<DataCall>> phones = new Dictionary<string, List<DataCall>>();
             Regex rNameOut = new Regex("БЕЛФАН");
+            Regex rRNR = new Regex("РНР");
+            Regex rAvers = new Regex("АВЕРС");
             ICompany company;
             if (!rNameOut.Match(nameoutput.ToUpper()).Success)
             {
-                company = new DefaultCompany();
+                if (!rRNR.Match(nameoutput.ToUpper()).Success)
+                {
+                    if (!rAvers.Match(nameoutput.ToUpper()).Success)
+                        company = new DefaultCompany(processedCalls);
+                    else
+                        company = new Avers(processedCalls);
+                }
+                else
+                    company = new RNRHouse(processedCalls);
             }
             else
             {
-                company = new Belfan();
+                company = new Belfan(processedCalls);
             }
-            company.ParserCheckLists(files);
+            company.ParserCheckLists(FilesManagers);
 
             string fileoutput = "C:\\Users\\xiaomi\\source\\repos\\MetanitAngular\\MetanitAngular\\OutputAnalitics";
             OutputDoc wbout = new OutputDoc();
+            wbout.setProcessedCalls(processedCalls);
             wbout.FillIncoming(company.getIncomeWithoutOutGoing());
             wbout.FillOutGoingPerWeeks(company.getCallsPerWeek());
             wbout.FillCallsOnSameStage(company.getCallsOneStage());
