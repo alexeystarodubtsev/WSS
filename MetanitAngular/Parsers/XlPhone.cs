@@ -174,13 +174,14 @@ namespace MetanitAngular.Parsers
             Regex rNameOut = new Regex("БЕЛФАН");
             Regex rRNR = new Regex("РНР");
             Regex rAvers = new Regex("АВЕРС");
+            Regex rDS = new Regex("Деловой союз", RegexOptions.IgnoreCase);
             ICompany company;
             if (!rNameOut.Match(nameoutput.ToUpper()).Success)
             {
                 if (!rRNR.Match(nameoutput.ToUpper()).Success)
                 {
                     if (!rAvers.Match(nameoutput.ToUpper()).Success)
-                        company = new DefaultCompany(processedCalls);
+                        company = new DefaultCompany(processedCalls, rDS.Match(nameoutput).Success);
                     else
                         company = new Avers(processedCalls);
                 }
@@ -197,9 +198,10 @@ namespace MetanitAngular.Parsers
             OutputDoc wbout = new OutputDoc();
             wbout.setProcessedCalls(processedCalls);
             wbout.FillIncoming(company.getIncomeWithoutOutGoing());
-            wbout.FillOutGoingPerWeeks(company.getCallsPerWeek());
+            wbout.FillOutGoingPerWeeks(company.getCallsPerWeek(), rDS.Match(nameoutput).Success);
             wbout.FillCallsOnSameStage(company.getCallsOneStage());
             wbout.FillCallsWithoutAgreement(company.getCallsPreAgreement());
+            wbout.FillArchive();
             var wboutFile = wbout.getFile();
 
             if (nameoutput == "")

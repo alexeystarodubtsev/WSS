@@ -19,13 +19,16 @@ namespace MetanitAngular.ProcessingDataCompanies
         }
         public new void ParserCheckLists(IEnumerable<IFormFile> files)
         {
-            using (var stream = files.First().OpenReadStream())
-            {
-                XLWorkbook wb = new XLWorkbook(stream);
-                FillStageDictionary(wb);
-            }
+            var DefaultFiles = files.Where(f => Regex.Match(f.FileName, "newf").Success);
+            var filesRNR = files.Where(f => !Regex.Match(f.FileName, "newf").Success);
+            base.ParserCheckLists(DefaultFiles);
+            //using (var stream = files.First().OpenReadStream())
+            //{
+            //    XLWorkbook wb = new XLWorkbook(stream);
+            //    FillStageDictionary(wb);
+            //}
 
-            foreach (var file in files)
+            foreach (var file in filesRNR)
             {
                 string Manager = Regex.Match(file.FileName, @"(\w+)").Groups[1].Value;
 
@@ -42,7 +45,14 @@ namespace MetanitAngular.ProcessingDataCompanies
 
                             IXLCell cell = page.Cell(2, 6);
                             DateTime curDate;
-                            DateTime.TryParse(cell.GetValue<string>(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate);
+                            if (cell.DataType == XLDataType.DateTime)
+                                curDate = cell.GetDateTime();
+                            else
+                            {
+                                if (!DateTime.TryParse(cell.GetString(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate))
+                                    DateTime.TryParse(cell.GetString(), new CultureInfo("en-US"), DateTimeStyles.None, out curDate);
+
+                            }
                             string phoneNumber;
                             int corrRow = 5;
                             Match Mcomment = Regex.Match(page.Cell(corrRow, 1).GetString().ToUpper(), @"КОРРЕКЦИИ");
@@ -55,7 +65,14 @@ namespace MetanitAngular.ProcessingDataCompanies
                             {
                                 if (cell.GetValue<string>() != "")
                                 {
-                                    DateTime.TryParse(cell.GetValue<string>(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate);
+                                    if (cell.DataType == XLDataType.DateTime)
+                                        curDate = cell.GetDateTime();
+                                    else
+                                    {
+                                        if (!DateTime.TryParse(cell.GetString(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate))
+                                            DateTime.TryParse(cell.GetString(), new CultureInfo("en-US"), DateTimeStyles.None, out curDate);
+
+                                    }
                                 }
                                 phoneNumber = cell.CellBelow().GetValue<string>().ToUpper().Trim();
                                 
@@ -82,7 +99,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                                     if (curDate >= exCall.StartDateAnalyze ||
                                         (
                                           exCall.ClientState.ToUpper() == "В РАБОТЕ") &&
-                                          exCall.StartDateAnalyze < DateTime.Now
+                                          exCall.StartDateAnalyze < DateTime.Today
                                     )
                                         phones.AddCall(new FullCall(phoneNumber, link, page.Name.ToUpper().Trim(), curDate, !m.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(),Manager));
 

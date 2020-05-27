@@ -52,8 +52,11 @@ namespace MetanitAngular.Excel
                 if (curCell.GetString() != "" && curCell.DataType == XLDataType.DateTime)
                     call.StartDateAnalyze = curCell.GetDateTime();
                 else
-                  DateTime.TryParse(curCell.GetString(), new CultureInfo("ru-RU"), DateTimeStyles.None, out call.StartDateAnalyze);
+                {
+                    if (!DateTime.TryParse(curCell.GetString(), new CultureInfo("ru-RU"), DateTimeStyles.None, out call.StartDateAnalyze))
+                        DateTime.TryParse(curCell.GetString(), new CultureInfo("en-US"), DateTimeStyles.None, out call.StartDateAnalyze);
 
+                }
 
                 if (!calls.Exists(c => (c.Client == call.Client && call.Link == "") || (c.Link == call.Link && call.Link !=null) ))
                     calls.Add(call);
@@ -78,6 +81,20 @@ namespace MetanitAngular.Excel
                 return false;
             }
                 
+        }
+        public static ProcessedCall getSamePhone(List<ProcessedCall> calls, ProcessedCall phone)
+        {
+            return calls.Where(c =>
+                ((c.Client == phone.Client && phone.Link == "") || (c.Link == phone.Link && phone.Link != ""))
+                &&
+                (Regex.Match(phone.Comment, c.Comment, RegexOptions.IgnoreCase).Success
+                   || Regex.Match(c.Comment, phone.Comment, RegexOptions.IgnoreCase).Success
+                   || c.Comment == phone.Comment
+                  )
+                && !Regex.Match(c.ClientState, "Закрыт", RegexOptions.IgnoreCase).Success
+                && (c.StartDateAnalyze < DateTime.Today)
+               ).FirstOrDefault();
+
         }
 
     }

@@ -16,7 +16,12 @@ namespace MetanitAngular.Excel
             public string comment;
             public XLHyperlink Link;
             public string Manager;
-            public CallIncoming(string phoneNumber, string Link, string date, string comment, string Manager)
+            public ProcessedCall call;
+            public string DealState;
+            public string DateDeal ;
+            public string NoticeCRM;
+            public CallIncoming(string phoneNumber, string Link, string date, string comment, string Manager, ProcessedCall call = new ProcessedCall(),
+                 string DealState = "", DateTime DateDeal = new DateTime())
             {
                 if (Link != "")
                     this.Link = new XLHyperlink(new Uri(Link));
@@ -26,6 +31,21 @@ namespace MetanitAngular.Excel
                 this.date = date;
                 this.comment = comment;
                 this.Manager = Manager;
+                this.call = call;
+                this.DealState = DealState;
+
+                this.NoticeCRM = "";
+                if (DealState.ToUpper() != "В РАБОТЕ")
+                {
+                    this.DealState = "Закрыт";
+                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
+                    this.NoticeCRM = DealState;
+                    
+                }
+                else
+                    this.DateDeal = "";
+                    
+                
             }
         }
         public struct ProcessedCall
@@ -38,6 +58,8 @@ namespace MetanitAngular.Excel
             public DateTime StartDateAnalyze;
             public string Link;
             
+
+
         }
 
         public struct CallPerWeek
@@ -49,7 +71,13 @@ namespace MetanitAngular.Excel
             public string comment;
             public XLHyperlink Link;
             public string Manager;
-            public CallPerWeek(string phoneNumber, string Link, string FirstWeek, string SecondWeek, string ThirdWeek, string comment, string Manager)
+            public ProcessedCall call;
+            public string DealState;
+            public string DateDeal;
+
+            public string NoticeCRM;
+            public CallPerWeek(string phoneNumber, string Link, string FirstWeek, string SecondWeek, string ThirdWeek, string comment, string Manager, ProcessedCall call = new ProcessedCall(),
+                 string DealState = "", DateTime DateDeal = new DateTime())
             {
                 this.phoneNumber = phoneNumber;
                 this.FirstWeek = FirstWeek;
@@ -61,6 +89,19 @@ namespace MetanitAngular.Excel
                 else
                     this.Link = null;
                 this.Manager = Manager;
+                this.call = call;
+                this.DealState = DealState;
+
+                this.NoticeCRM = "";
+                if (DealState.ToUpper() != "В РАБОТЕ")
+                {
+                    this.DealState = "Закрыт";
+                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
+                    this.NoticeCRM = DealState;
+
+                }
+                else
+                    this.DateDeal = "";
             }
         }
 
@@ -73,7 +114,14 @@ namespace MetanitAngular.Excel
             public string stage;
             public XLHyperlink Link;
             public string Manager;
-            public CallOneStage(string phoneNumber, string Link, string date, string comment, string stage, string qty, string Manager)
+            public ProcessedCall call;
+
+            public string DealState;
+            public string DateDeal ;
+
+            public string NoticeCRM;
+            public CallOneStage(string phoneNumber, string Link, string date, string comment, string stage, string qty, string Manager, ProcessedCall call = new ProcessedCall(),
+                 string DealState = "", DateTime DateDeal = new DateTime())
             {
                 this.phoneNumber = phoneNumber;
                 this.date = date;
@@ -85,6 +133,19 @@ namespace MetanitAngular.Excel
                 else
                     this.Link = null;
                 this.Manager = Manager;
+                this.call = call;
+                this.DealState = DealState;
+                this.NoticeCRM = "";
+                if (DealState.ToUpper() != "В РАБОТЕ")
+                {
+                    this.DealState = "Закрыт";
+                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
+                    this.NoticeCRM = DealState;
+
+                }
+                else
+                    this.DateDeal = "";
+
             }
         }
         public struct CallPreAgreement
@@ -95,7 +156,14 @@ namespace MetanitAngular.Excel
             public string stage;
             public XLHyperlink Link;
             public string Manager;
-            public CallPreAgreement(string phoneNumber, string Link, string date, string comment, string stage, string Manager)
+            public ProcessedCall call;
+
+            public string DealState;
+            public string DateDeal;
+
+            public string NoticeCRM;
+            public CallPreAgreement(string phoneNumber, string Link, string date, string comment, string stage, string Manager, ProcessedCall call = new ProcessedCall(),
+                 string DealState = "", DateTime DateDeal = new DateTime())
             {
                 this.phoneNumber = phoneNumber;
                 this.date = date;
@@ -106,6 +174,19 @@ namespace MetanitAngular.Excel
                 else
                     this.Link = null;
                 this.Manager = Manager;
+                this.call = call;
+                this.DealState = DealState;
+                this.NoticeCRM = "";
+                if (DealState.ToUpper() != "В РАБОТЕ")
+                {
+                    this.DealState = "Закрыт";
+                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
+                    this.NoticeCRM = DealState;
+
+                }
+                else
+                    this.DateDeal = "";
+                
             }
         }
     }

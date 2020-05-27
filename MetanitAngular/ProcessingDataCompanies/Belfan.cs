@@ -62,7 +62,16 @@ namespace MetanitAngular.ProcessingDataCompanies
                     AddedCall.Link = call.Value.link;
                     AddedCall.Comment = LastCall.Comment;
                     if (!InputDoc.hasPhone(processedCalls, AddedCall))
-                        returnCalls.Add(new CallIncoming(call.Key, "", String.Format("{0:dd.MM.yy}", LastCall.date), LastCall.Comment,call.Value.GetManager()));
+                        returnCalls.Add(new CallIncoming(call.Key, "", String.Format("{0:dd.MM.yy}", LastCall.date), LastCall.Comment,call.Value.GetManager(), new ProcessedCall(),  call.Value.DealState, call.Value.DateDeal));
+                    else
+                    {
+                        var samecall = InputDoc.getSamePhone(processedCalls, AddedCall);
+                        if (samecall.ClientState != null && samecall.ClientState.ToUpper() == "В РАБОТЕ")
+                        {
+                            returnCalls.Add(new CallIncoming(call.Key, "", String.Format("{0:dd.MM.yy}", LastCall.date), 
+                                LastCall.Comment, call.Value.GetManager(), samecall,call.Value.DealState,call.Value.DateDeal));
+                        }
+                    }
                 }
             }
 
@@ -118,7 +127,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                         prevlastStage = dictStage.Key;
                     }
                 }
-                if (t1.TotalDays >= 7 && !call.Value.stages.ContainsKey(prevlastStage) && !call.Value.stages.ContainsKey(LastStage))
+                if (t1.TotalDays >= 23 && !call.Value.stages.ContainsKey(prevlastStage) && !call.Value.stages.ContainsKey(LastStage))
                 {
                     CallPerWeek curCall = new CallPerWeek();
                     curCall.FirstWeek = "-";
@@ -141,9 +150,31 @@ namespace MetanitAngular.ProcessingDataCompanies
                     AddedCall.Client = curCall.phoneNumber;
                     AddedCall.Link = call.Value.link;
                     AddedCall.Comment = curCall.comment;
+
+                    curCall.DealState = call.Value.DealState;
+                    if (call.Value.DealState.ToUpper() != "В РАБОТЕ")
+                    {
+                        curCall.DealState = "Закрыт";
+                        curCall.DateDeal = call.Value.DateDeal.ToString("dd.MM.yyyy");
+                        curCall.NoticeCRM = call.Value.DealState;
+
+                    }
+                    else
+                        curCall.DateDeal = "";
+
                     if (!InputDoc.hasPhone(processedCalls, AddedCall))
                         returnCalls.Add(curCall);
-                            
+                    else
+                    {
+                        var samecall = InputDoc.getSamePhone(processedCalls, AddedCall);
+                        if (samecall.ClientState != null && samecall.ClientState.ToUpper() == "В РАБОТЕ")
+                        {
+
+                            curCall.call = samecall;
+                            returnCalls.Add(curCall);
+                        }
+                    }
+
                 }
                     
             }
@@ -184,8 +215,28 @@ namespace MetanitAngular.ProcessingDataCompanies
                     AddedCall.Client = curCall.phoneNumber;
                     AddedCall.Link = "";
                     AddedCall.Comment = curCall.comment;
+                    curCall.DealState = call.Value.DealState;
+                    if (call.Value.DealState.ToUpper() != "В РАБОТЕ")
+                    {
+                        curCall.DealState = "Закрыт";
+                        curCall.DateDeal = call.Value.DateDeal.ToString("dd.MM.yyyy");
+                        curCall.NoticeCRM = call.Value.DealState;
+
+                    }
+                    else
+                        curCall.DateDeal = "";
                     if (!InputDoc.hasPhone(processedCalls, AddedCall))
                         returnCalls.Add(curCall);
+                    else
+                    {
+                        var samecall = InputDoc.getSamePhone(processedCalls, AddedCall);
+                        if (samecall.ClientState != null && samecall.ClientState.ToUpper() == "В РАБОТЕ")
+                        {
+                            
+                            curCall.call = samecall;
+                            returnCalls.Add(curCall);
+                        }
+                    }
                 }
             }
             return returnCalls;
@@ -224,7 +275,18 @@ namespace MetanitAngular.ProcessingDataCompanies
                     AddedCall.Link = "";
                     AddedCall.Comment = compcall.comment;
                     if (!InputDoc.hasPhone(processedCalls, AddedCall))
-                        returnCalls.Add(new CallPreAgreement(call.Key, "", String.Format("{0:dd.MM.yy}", compcall.Date), compcall.comment, maxStage, call.Value.GetManager()));
+                        returnCalls.Add(new CallPreAgreement(call.Key, "", String.Format("{0:dd.MM.yy}", compcall.Date), compcall.comment, maxStage, call.Value.GetManager(),new ProcessedCall(), call.Value.DealState, call.Value.DateDeal));
+                    else
+                    {
+                        var samecall = InputDoc.getSamePhone(processedCalls, AddedCall);
+                        if (samecall.ClientState != null && samecall.ClientState.ToUpper() == "В РАБОТЕ")
+                        {
+
+                            returnCalls.Add(new CallPreAgreement(call.Key, "", String.Format("{0:dd.MM.yy}", compcall.Date), compcall.comment, maxStage, call.Value.GetManager(),
+                            samecall, call.Value.DealState, call.Value.DateDeal));
+                            
+                        }
+                    }
                 }
 
 
@@ -238,11 +300,33 @@ namespace MetanitAngular.ProcessingDataCompanies
             var page = wb.Worksheets.First();
             var CurCell = page.Cell("A5");
             Regex rx = new Regex("ИТОГ");
+
+            
+            Dictionary<string, string> OldNewStage = new Dictionary<string, string>();
+            string oldNameStage = "Консультация по коллекции/Макет коллаж 17";
+            string newName = "Консультация по коллекции/Макет коллаж Максимально баллов без учета расширения чека (19)";
+            OldNewStage[oldNameStage.ToUpper()] = newName.ToUpper();
+            oldNameStage = "КОНСУЛЬТАЦИЯ ПО КОЛЛЕКЦИИ / МАКЕТ КОЛЛАЖ МАКСИМАЛЬНО БАЛЛОВ БЕЗ УЧЕТА РАСШИРЕНИЯ ЧЕКА(19)";
+            OldNewStage[oldNameStage.ToUpper()] = newName.ToUpper();
+            
+            oldNameStage = "Заказ 11";
+            newName = "Заказ 13";
+            OldNewStage[oldNameStage.ToUpper()] = newName.ToUpper();
+            oldNameStage = "Предварительный просчет 17";
+            newName = "Предварительный просчет 19";
+            OldNewStage[oldNameStage.ToUpper()] = newName.ToUpper();
+            oldNameStage = "Если нет оплаты 16";
+            newName = "Если нет оплаты 18";
+            OldNewStage[oldNameStage.ToUpper()] = newName.ToUpper();
+
             while (!rx.Match(CurCell.GetString().ToUpper()).Success)
             {
                 if (CurCell.GetString() != "")
                 {
-                    phones.Stages[CurCell.GetString().Trim().ToUpper()] = i;
+                    string NewStage = CurCell.GetString().Trim().ToUpper();
+                    if (OldNewStage.ContainsKey(NewStage))
+                        NewStage = OldNewStage[NewStage];
+                    phones.Stages[NewStage] = i;
                     i++;
                 }
                 CurCell = CurCell.CellBelow();
@@ -269,21 +353,67 @@ namespace MetanitAngular.ProcessingDataCompanies
 
                     IXLCell cell = page.Cell(1, 5);
                     DateTime curDate;
-                    DateTime.TryParse(cell.GetValue<string>(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate);
+                    if (cell.DataType == XLDataType.DateTime)
+                        curDate = cell.GetDateTime();
+                    else
+                    {
+                        if (!DateTime.TryParse(cell.GetString(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate))
+                            DateTime.TryParse(cell.GetString(), new CultureInfo("en-US"), DateTimeStyles.None, out curDate);
+
+                    }
                     string phoneNumber;
-                    string phoneCell;
+                    IXLCell phoneCell;
                     while (!(cell.IsEmpty() && cell.CellRight().IsEmpty() && !cell.IsMerged()))
                     {
                         if (cell.GetString() != "")
                         {
-                            DateTime.TryParse(cell.GetValue<string>(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate);
+                            if (cell.DataType == XLDataType.DateTime)
+                                curDate = cell.GetDateTime();
+                            else
+                            {
+                                if (!DateTime.TryParse(cell.GetString(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate))
+                                    DateTime.TryParse(cell.GetString(), new CultureInfo("en-US"), DateTimeStyles.None, out curDate);
+
+                            }
                         }
-                        phoneCell = cell.CellBelow().CellBelow().GetValue<string>().ToUpper().Trim();
-                        if (phoneCell != "")
+
+                        phoneCell = cell.CellBelow();
+                        if (phoneCell.GetString() == "")
+                            phoneCell = phoneCell.CellBelow();
+                        if (phoneCell.GetString() != "")
                         {
-                            Match outgoing = Regex.Match(phoneCell.ToUpper(), @"ИСХОДЯЩИЙ");
-                            phoneNumber = Regex.Replace(phoneCell.ToUpper(), @"[^\d]", String.Empty);
-                            phoneNumber = "8 (" + phoneNumber.Substring(1, 3) + ") " + phoneNumber.Substring(4, 3) + "-" + phoneNumber.Substring(7, 2) + "-" + phoneNumber.Substring(9);
+
+                            string link;
+                            if (phoneCell.HasHyperlink)
+                                link = phoneCell.GetHyperlink().ExternalAddress.AbsoluteUri;
+                            else
+                                link = "";
+                            Match outgoing = Regex.Match(phoneCell.GetString().ToUpper(), @"ИСХОДЯЩИЙ");
+                            phoneNumber = Regex.Replace(phoneCell.GetString().ToUpper(), @"[^\d]", String.Empty);
+                            string oldphonenum = phoneNumber;
+                            oldphonenum =  "8 (" + oldphonenum.Substring(1, 3) + ") " + oldphonenum.Substring(4, 3) + "-" + oldphonenum.Substring(7, 2) + "-" + oldphonenum.Substring(9);
+                            while (phoneNumber[0] == '0')
+                            {
+                                phoneNumber = phoneNumber.Substring(1);
+                            }
+                            if (phoneNumber[0] == '9')
+                                phoneNumber = '8' + phoneNumber;
+                            if (phoneNumber[0] == '7' || phoneNumber[0] == '8')
+                                phoneNumber = "8 (" + phoneNumber.Substring(1, 3) + ") " + phoneNumber.Substring(4, 3) + "-" + phoneNumber.Substring(7, 2) + "-" + phoneNumber.Substring(9);
+                            
+                            if (processedCalls.Exists(c=> c.Client == oldphonenum) && oldphonenum!= phoneNumber)
+                            {
+                                var testCall = processedCalls.Where(c => c.Client == oldphonenum).First();
+                                processedCalls.Remove(testCall);
+                                testCall.Client = phoneNumber;
+                                processedCalls.Add(testCall);
+                            }
+                            if (processedCalls.Exists(c => c.Client == phoneNumber && c.Link == ""))
+                            {
+                                var testCall = processedCalls.Where(c => c.Client == phoneNumber).First();
+                                testCall.Link = link;
+                            }
+
                             var CellStage = page.Cell("A5");
                             Regex rx = new Regex("ИТОГ");
                             int corrRow = 5;
@@ -293,7 +423,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                                 corrRow++;
                                 Mcomment = Regex.Match(page.Cell(corrRow, 1).GetString().ToUpper(), @"КОРРЕКЦИИ");
                             }
-                            while (!rx.Match(CellStage.GetString().ToUpper()).Success)
+                            while (!rx.Match(CellStage.GetString().ToUpper()).Success && !rx.Match(CellStage.CellRight().CellRight().CellRight().GetString().ToUpper()).Success)
                             {
                                 if (CellStage.GetString() != "" && page.Cell(CellStage.Address.RowNumber, cell.Address.ColumnNumber).GetString() != "")
                                 {
@@ -309,9 +439,9 @@ namespace MetanitAngular.ProcessingDataCompanies
                                     if (curDate >= exCall.StartDateAnalyze ||
                                         (
                                           exCall.ClientState.ToUpper() == "В РАБОТЕ") &&
-                                          exCall.StartDateAnalyze < DateTime.Now
+                                          exCall.StartDateAnalyze < DateTime.Today
                                     )
-                                        phones.AddCall(new FullCall(phoneNumber, "", CellStage.GetString(), curDate, outgoing.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(),Manager));
+                                        phones.AddCall(new FullCall(phoneNumber, link, CellStage.GetString(), curDate, outgoing.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(),Manager, page.Cell(corrRow + 5, cell.Address.ColumnNumber).GetString()));
                                 }
                                 CellStage = CellStage.CellBelow();
 

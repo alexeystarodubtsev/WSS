@@ -16,7 +16,8 @@ namespace MetanitAngular.Models
         public string Comment;
         public string Link;
         public string Manager;
-        public FullCall(string phoneNumber, string link, string stage, DateTime date, bool outgoing, string Comment, string Manager)
+        public string StateDeal;
+        public FullCall(string phoneNumber, string link, string stage, DateTime date, bool outgoing, string Comment, string Manager,string StateDeal = "")
         {
             this.date = date;
             this.phoneNumber = phoneNumber;
@@ -25,6 +26,7 @@ namespace MetanitAngular.Models
             this.Comment = Comment;
             this.Link = link;
             this.Manager = Manager;
+            this.StateDeal = StateDeal;
             
         }
     }
