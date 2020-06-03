@@ -63,7 +63,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                     AddedCall.Link = call.Value.link;
                     AddedCall.Comment = LastCall.Comment;
                     if (!InputDoc.hasPhone(processedCalls, AddedCall))
-                        returnCalls.Add(new CallIncoming(call.Value.phoneNumber, call.Value.link, String.Format("{0:dd.MM.yy}", LastCall.date), LastCall.Comment, call.Value.GetManager()));
+                        returnCalls.Add(new CallIncoming(call.Value.phoneNumber, call.Value.link, String.Format("{0:dd.MM.yy}", LastCall.date), LastCall.Comment, call.Value.GetManager(),new ProcessedCall(), call.Value.DealState, call.Value.DateDeal));
                     else
                     {
                         var samecall = InputDoc.getSamePhone(processedCalls, AddedCall);
@@ -71,7 +71,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                         {
                             returnCalls.Add(new CallIncoming(call.Value.phoneNumber, call.Value.link, 
                                 String.Format("{0:dd.MM.yy}", LastCall.date), 
-                                LastCall.Comment, call.Value.GetManager(),samecall)); 
+                                LastCall.Comment, call.Value.GetManager(),samecall, call.Value.DealState, call.Value.DateDeal)); 
                         }
 
                     }
@@ -148,6 +148,22 @@ namespace MetanitAngular.ProcessingDataCompanies
                     AddedCall.Client = curCall.phoneNumber;
                     AddedCall.Link = call.Value.link;
                     AddedCall.Comment = curCall.comment;
+                    curCall.DateDeal = "";
+                    if (call.Value.DealState.ToUpper() != "В РАБОТЕ" && call.Value.DealState != "")
+                    {
+                        curCall.DealState = "Закрыт";
+                        curCall.NoticeCRM = call.Value.DealState;
+                        curCall.DateDeal = call.Value.DateDeal.ToString("dd.MM.yyyy");
+                    }
+                    if (call.Value.DealState.ToUpper() == "В РАБОТЕ")
+                    {
+                        curCall.DealState = call.Value.DealState;
+                        if (call.Value.DateDeal.Year > 2000)
+                        {
+                            curCall.DateDeal = call.Value.DateDeal.ToString("dd.MM.yyyy");
+                        }
+                    }
+
                     if (!InputDoc.hasPhone(processedCalls, AddedCall))
                         returnCalls.Add(curCall);
                     else
@@ -236,6 +252,21 @@ namespace MetanitAngular.ProcessingDataCompanies
                     AddedCall.Client = phone.Value.phoneNumber;
                     AddedCall.Link = phone.Value.link;
                     AddedCall.Comment = curCall.comment;
+                    curCall.DateDeal = "";
+                    if (phone.Value.DealState.ToUpper() != "В РАБОТЕ" && phone.Value.DealState != "")
+                    {
+                        curCall.DealState = "Закрыт";
+                        curCall.NoticeCRM = phone.Value.DealState;
+                        curCall.DateDeal = phone.Value.DateDeal.ToString("dd.MM.yyyy");
+                    }
+                    if (phone.Value.DealState.ToUpper() == "В РАБОТЕ")
+                    {
+                        curCall.DealState = phone.Value.DealState;
+                        if (phone.Value.DateDeal.Year > 2000)
+                        {
+                            curCall.DateDeal = phone.Value.DateDeal.ToString("dd.MM.yyyy");
+                        }
+                    }
                     if (!InputDoc.hasPhone(processedCalls, AddedCall))
                         returnCalls.Add(curCall);
                     else
@@ -258,6 +289,8 @@ namespace MetanitAngular.ProcessingDataCompanies
         public void FillStageDictionary(XLWorkbook wb)
         {
             int i = 1;
+            string meet = "Назначена Встреча";
+            phones.Stages[meet.ToUpper()] = 50;
             foreach (var page in wb.Worksheets)
             {
                 
@@ -362,7 +395,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                     AddedCall.Client = phone.Value.phoneNumber;
                     AddedCall.Comment = LastCall.comment;
                     if (!InputDoc.hasPhone(processedCalls, AddedCall))
-                        returnCalls.Add(new CallPreAgreement(phone.Value.phoneNumber, phone.Value.link, String.Format("{0:dd.MM.yy}", LastCall.Date), LastCall.comment, lastStage, phone.Value.GetManager()));
+                        returnCalls.Add(new CallPreAgreement(phone.Value.phoneNumber, phone.Value.link, String.Format("{0:dd.MM.yy}", LastCall.Date), LastCall.comment, lastStage, phone.Value.GetManager(), new ProcessedCall(), phone.Value.DealState, phone.Value.DateDeal));
                     else
                     {
                         var samecall = InputDoc.getSamePhone(processedCalls, AddedCall);
@@ -370,7 +403,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                         {
                             returnCalls.Add(new CallPreAgreement(phone.Value.phoneNumber, phone.Value.link,
                                 String.Format("{0:dd.MM.yy}", LastCall.Date),
-                                LastCall.comment, lastStage, phone.Value.GetManager(), samecall));
+                                LastCall.comment, lastStage, phone.Value.GetManager(), samecall, phone.Value.DealState, phone.Value.DateDeal));
                         }
                     }
                 }
@@ -474,12 +507,35 @@ namespace MetanitAngular.ProcessingDataCompanies
                                           exCall.ClientState.ToUpper() == "В РАБОТЕ") &&
                                           exCall.StartDateAnalyze < DateTime.Today.AddDays(1)
                                     ) && normalDate)
-                                        phones.AddCall(new FullCall(phoneNumber, link, page.Name.ToUpper().Trim(), curDate, !m.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(),Manager));
+                                    {
+                                        DateTime DateNext = new DateTime();
+                                        var NextContactCell = page.Cell(corrRow + 6, cell.Address.ColumnNumber);
+                                        if (NextContactCell.GetString() != "")
+                                        {
+                                            if (NextContactCell.DataType == XLDataType.DateTime)
+                                                DateNext = NextContactCell.GetDateTime();
+                                            else
+                                            {
+                                                if (!DateTime.TryParse(NextContactCell.GetString(), new CultureInfo("ru-RU"), DateTimeStyles.None, out DateNext))
+                                                    DateTime.TryParse(NextContactCell.GetString(), new CultureInfo("en-US"), DateTimeStyles.None, out DateNext);
 
+                                            }
+                                        }
+                                        if (curDate > new DateTime(2020, 5, 5))
+                                            phones.AddCall(new FullCall(phoneNumber, link, page.Name.ToUpper().Trim(), curDate, !m.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(), Manager, page.Cell(corrRow + 5, cell.Address.ColumnNumber).GetString(), DateNext));
+                                        else
+                                        {
+                                            phones.AddCall(new FullCall(phoneNumber, link, page.Name.ToUpper().Trim(), curDate, !m.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(), Manager));
+                                        }
+
+
+                                        
+                                    }
                                 }
 
                                 cell = cell.CellRight();
                             }
+                            phones.CleanSuccess(ref processedCalls);
 
                         }
                     }

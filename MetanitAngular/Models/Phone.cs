@@ -10,7 +10,7 @@ namespace MetanitAngular.Models
         public Dictionary<string, List<OneCall>> stages;
         public string link { get; }
         public string phoneNumber { get; }
-        public string DealState;
+        public string DealState= "";
         public DateTime DateDeal = DateTime.MinValue;
         public List<string> Managers = new List<string>();
         public Phone(string link, string PhoneNumber)
@@ -58,10 +58,24 @@ namespace MetanitAngular.Models
             if (!Managers.Contains(call.Manager))
                 Managers.Add(call.Manager);
             stages[NameStage].Add(new OneCall(call));
-            if (call.date > DateDeal || (DealState.ToUpper() == "В РАБОТЕ" && call.date == DateDeal))
+            DateTime DateAnalyze;
+            if (call.phoneNumber == "8 (903) 279-23-46")
             {
-                DateDeal = call.date;
-                DealState = call.StateDeal;
+
+            }
+            if (call.StateDeal.ToUpper().Trim() == "В РАБОТЕ")
+            {
+                DateAnalyze = call.DateNextContact;
+            }
+            else
+            {
+                DateAnalyze = call.date;
+            }
+               
+            if (DateAnalyze > DateDeal || (DealState.ToUpper().Trim() == "В РАБОТЕ" && DateAnalyze == DateDeal) || DealState == "")
+            {
+                DateDeal = DateAnalyze;
+                DealState = call.StateDeal.Trim();
             }
         } 
     }

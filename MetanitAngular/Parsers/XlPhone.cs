@@ -190,7 +190,7 @@ namespace MetanitAngular.Parsers
             }
             else
             {
-                company = new Belfan(processedCalls);
+                company = new Belfan(ref processedCalls);
             }
             company.ParserCheckLists(FilesManagers);
 
@@ -204,11 +204,19 @@ namespace MetanitAngular.Parsers
             wbout.FillArchive();
             var wboutFile = wbout.getFile();
 
+            string dirpath = fileoutput;
             if (nameoutput == "")
                 fileoutput = fileoutput + "\\" + "default" + ".xlsx";
             else
                 fileoutput = fileoutput + "\\" + nameoutput + ".xlsx";
-            wboutFile.SaveAs(fileoutput);
+            try
+            {
+                wboutFile.SaveAs(fileoutput);
+            }
+            catch (System.IO.IOException)
+            {
+                fileoutput = dirpath + "\\Копия " + nameoutput + ".xlsx";
+            }
             Tuple<List<Phone>, List<Phone>> returnPhones = new Tuple<List<Phone>, List<Phone>>(new List<Phone>(), new List<Phone>());
             return returnPhones;
         }

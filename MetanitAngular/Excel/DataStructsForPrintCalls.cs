@@ -35,17 +35,23 @@ namespace MetanitAngular.Excel
                 this.DealState = DealState;
 
                 this.NoticeCRM = "";
-                if (DealState.ToUpper() != "В РАБОТЕ")
+                this.DateDeal = "";
+                if (DealState.ToUpper() != "В РАБОТЕ" && DealState != "")
                 {
                     this.DealState = "Закрыт";
-                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
                     this.NoticeCRM = DealState;
-                    
+                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
                 }
-                else
-                    this.DateDeal = "";
-                    
-                
+                if (DealState.ToUpper() == "В РАБОТЕ")
+                {
+                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
+                    if (DateDeal.Year < 2000)
+                    {
+                        this.DateDeal = "";
+                    }
+                }
+
+
             }
         }
         public struct ProcessedCall
@@ -93,15 +99,21 @@ namespace MetanitAngular.Excel
                 this.DealState = DealState;
 
                 this.NoticeCRM = "";
-                if (DealState.ToUpper() != "В РАБОТЕ")
+                this.DateDeal = "";
+                if (DealState.ToUpper() != "В РАБОТЕ" && DealState != "")
                 {
                     this.DealState = "Закрыт";
-                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
                     this.NoticeCRM = DealState;
-
+                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
                 }
-                else
-                    this.DateDeal = "";
+                if (DealState.ToUpper() == "В РАБОТЕ")
+                {
+                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
+                    if (DateDeal.Year < 2000)
+                    {
+                        this.DateDeal = "";
+                    }
+                }
             }
         }
 
@@ -136,15 +148,21 @@ namespace MetanitAngular.Excel
                 this.call = call;
                 this.DealState = DealState;
                 this.NoticeCRM = "";
-                if (DealState.ToUpper() != "В РАБОТЕ")
+                this.DateDeal = "";
+                if (DealState.ToUpper() != "В РАБОТЕ" && DealState != "")
                 {
                     this.DealState = "Закрыт";
-                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
                     this.NoticeCRM = DealState;
-
+                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
                 }
-                else
-                    this.DateDeal = "";
+                if (DealState.ToUpper() == "В РАБОТЕ")
+                {
+                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
+                    if (DateDeal.Year < 2000)
+                    {
+                        this.DateDeal = "";
+                    }
+                }
 
             }
         }
@@ -177,16 +195,23 @@ namespace MetanitAngular.Excel
                 this.call = call;
                 this.DealState = DealState;
                 this.NoticeCRM = "";
-                if (DealState.ToUpper() != "В РАБОТЕ")
+                this.DateDeal = "";
+                if (DealState.ToUpper() != "В РАБОТЕ" && DealState != "")
                 {
                     this.DealState = "Закрыт";
-                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
                     this.NoticeCRM = DealState;
-
+                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
                 }
-                else
-                    this.DateDeal = "";
-                
+                if (DealState.ToUpper() == "В РАБОТЕ")
+                {
+                    this.DateDeal = DateDeal.ToString("dd.MM.yyyy");
+                    if (DateDeal.Year < 2000)
+                    {
+                        this.DateDeal = "";
+                    }
+                }
+
+
             }
         }
     }
