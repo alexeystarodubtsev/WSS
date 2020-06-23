@@ -198,9 +198,11 @@ namespace MetanitAngular.Parsers
             OutputDoc wbout = new OutputDoc();
             wbout.setProcessedCalls(processedCalls);
             wbout.FillIncoming(company.getIncomeWithoutOutGoing());
-            wbout.FillOutGoingPerWeeks(company.getCallsPerWeek(), rDS.Match(nameoutput).Success);
+            if (!rRNR.Match(nameoutput.ToUpper()).Success && !rNameOut.Match(nameoutput.ToUpper()).Success)
+                wbout.FillOutGoingPerWeeks(company.getCallsPerWeek(), rDS.Match(nameoutput).Success);
             wbout.FillCallsOnSameStage(company.getCallsOneStage());
-            wbout.FillCallsWithoutAgreement(company.getCallsPreAgreement());
+            if (!rRNR.Match(nameoutput.ToUpper()).Success)
+                wbout.FillCallsWithoutAgreement(company.getCallsPreAgreement());
             wbout.FillArchive();
             var wboutFile = wbout.getFile();
 

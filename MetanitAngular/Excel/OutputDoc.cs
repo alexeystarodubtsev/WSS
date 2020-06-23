@@ -33,17 +33,8 @@ namespace MetanitAngular.Excel
                 //worksheet.Cell(curRow, 2).Value = phone.date;
                 worksheet.Cell(curRow, 4).Value = phone.comment;
                 worksheet.Cell(curRow, 3).Value = phone.Manager;
-                worksheet.Cell(curRow, 5).Value = phone.call.NoticeCRM;
-                if (phone.call.ClientState != "")
-                {
-                    worksheet.Cell(curRow, 6).Value = phone.call.ClientState;
-                    worksheet.Cell(curRow, 6).Style.Font.FontColor = XLColor.Red;
-                }
-                if (phone.call.StartDateAnalyze.Year > 2000)
-                {
-                    worksheet.Cell(curRow, 7).SetValue<string>(String.Format("{0:dd.MM.yyyy}", phone.call.StartDateAnalyze));
-                }
-                if (phone.DealState != "" && (phone.call.ClientState == "" || phone.call.ClientState == null))
+                
+                if (phone.DealState != "" && phone.DealState != null)
                 {
                     worksheet.Cell(curRow, 6).Value = phone.DealState;
                     worksheet.Cell(curRow, 6).Style.Font.Italic = true;
@@ -51,6 +42,19 @@ namespace MetanitAngular.Excel
                     worksheet.Cell(curRow, 7).SetValue<string>(phone.DateDeal);
                     worksheet.Cell(curRow, 5).Value = phone.NoticeCRM;
                     worksheet.Cell(curRow, 5).Style.Font.Italic = true;
+                }
+                else
+                {
+                    worksheet.Cell(curRow, 5).Value = phone.call.NoticeCRM;
+                    if (phone.call.ClientState != "")
+                    {
+                        worksheet.Cell(curRow, 6).Value = phone.call.ClientState;
+                        worksheet.Cell(curRow, 6).Style.Font.FontColor = XLColor.Red;
+                    }
+                    if (phone.call.StartDateAnalyze.Year > 2000)
+                    {
+                        worksheet.Cell(curRow, 7).SetValue<string>(String.Format("{0:dd.MM.yyyy}", phone.call.StartDateAnalyze));
+                    }
                 }
                 //worksheet.Cell(curRow, 7).Style.NumberFormat.NumberFormatId = 14;
             }
@@ -104,28 +108,34 @@ namespace MetanitAngular.Excel
                     worksheet.Cell(curRow, curCol).Style.Fill.BackgroundColor = XLColor.Red;
                 }
                 curCol++;
-                worksheet.Cell(curRow, curCol++).Value = phone.call.NoticeCRM;
                 
-                if (phone.call.ClientState != "")
+                if (phone.DealState != "" && phone.DealState != null)
                 {
-                    worksheet.Cell(curRow, curCol).Value = phone.call.ClientState;
-                    worksheet.Cell(curRow, curCol).Style.Font.FontColor = XLColor.Red;
-                }
-                if (phone.DealState != "" &&  (phone.call.ClientState == "" || phone.call.ClientState == null))
-                {
-                    worksheet.Cell(curRow, curCol).Value = phone.DealState;
-                    worksheet.Cell(curRow, curCol).Style.Font.Italic = true;
-                    worksheet.Cell(curRow, curCol + 1).SetValue<string>(phone.DateDeal);
+                    worksheet.Cell(curRow, curCol + 1).Value = phone.DealState;
+                    worksheet.Cell(curRow, curCol + 1).Style.Font.Italic = true;
+                    worksheet.Cell(curRow, curCol + 2).SetValue<string>(phone.DateDeal);
 
                     worksheet.Cell(curRow, curCol).Style.Font.FontColor = XLColor.Black;
-                    worksheet.Cell(curRow, curCol - 1).Value = phone.NoticeCRM;
-                    worksheet.Cell(curRow, curCol - 1).Style.Font.Italic = true;
+                    worksheet.Cell(curRow, curCol++).Value = phone.NoticeCRM;
+                    worksheet.Cell(curRow, curCol).Style.Font.Italic = true;
                 }
-                curCol++;
-                if (phone.call.StartDateAnalyze.Year > 2000)
+                else
                 {
-                    worksheet.Cell(curRow, curCol).SetValue<string>(String.Format("{0:dd.MM.yyyy}", phone.call.StartDateAnalyze));
+                    worksheet.Cell(curRow, curCol++).Value = phone.call.NoticeCRM;
+
+                    if (phone.call.ClientState != "")
+                    {
+                        worksheet.Cell(curRow, curCol).Value = phone.call.ClientState;
+                        worksheet.Cell(curRow, curCol).Style.Font.FontColor = XLColor.Red;
+                    }
+                    curCol++;
+                    if (phone.call.StartDateAnalyze.Year > 2000)
+                    {
+                        worksheet.Cell(curRow, curCol).SetValue<string>(String.Format("{0:dd.MM.yyyy}", phone.call.StartDateAnalyze));
+                    }
                 }
+                
+                
                 
                 //worksheet.Cell(curRow, curCol).Style.NumberFormat.NumberFormatId = 14;
 
@@ -160,17 +170,8 @@ namespace MetanitAngular.Excel
                 //worksheet.Cell(curRow, 4).Value = phone.date;
                 worksheet.Cell(curRow, 5).Value = phone.Manager;
                 worksheet.Cell(curRow, 6).Value = phone.comment;
-                worksheet.Cell(curRow, 7).Value = phone.call.NoticeCRM;
-                if (phone.call.ClientState != "")
-                {
-                    worksheet.Cell(curRow, 8).Value = phone.call.ClientState;
-                    worksheet.Cell(curRow, 8).Style.Font.FontColor = XLColor.Red;
-                }
-                if (phone.call.StartDateAnalyze.Year > 2000)
-                {
-                    worksheet.Cell(curRow, 9).SetValue<string>(String.Format("{0:dd.MM.yyyy}", phone.call.StartDateAnalyze));
-                }
-                if (phone.DealState != "" && (phone.call.ClientState == "" || phone.call.ClientState == null))
+                
+                if (phone.DealState != "" && phone.DealState != null)
                 {
                     worksheet.Cell(curRow, 8).Value = phone.DealState;
                     worksheet.Cell(curRow, 8).Style.Font.Italic = true;
@@ -179,6 +180,19 @@ namespace MetanitAngular.Excel
                     worksheet.Cell(curRow, 8).Style.Font.FontColor = XLColor.Black;
                     worksheet.Cell(curRow, 7).Value = phone.NoticeCRM;
                     worksheet.Cell(curRow, 7).Style.Font.Italic = true;
+                }
+                else
+                {
+                    worksheet.Cell(curRow, 7).Value = phone.call.NoticeCRM;
+                    if (phone.call.ClientState != "")
+                    {
+                        worksheet.Cell(curRow, 8).Value = phone.call.ClientState;
+                        worksheet.Cell(curRow, 8).Style.Font.FontColor = XLColor.Red;
+                    }
+                    if (phone.call.StartDateAnalyze.Year > 2000)
+                    {
+                        worksheet.Cell(curRow, 9).SetValue<string>(String.Format("{0:dd.MM.yyyy}", phone.call.StartDateAnalyze));
+                    }
                 }
                 //worksheet.Cell(curRow, 9).Style.NumberFormat.NumberFormatId = 14;
             }
@@ -208,17 +222,8 @@ namespace MetanitAngular.Excel
                 worksheet.Cell(curRow, 3).SetValue<string>(phone.date);
                 worksheet.Cell(curRow, 4).Value = phone.Manager;
                 worksheet.Cell(curRow, 5).Value = phone.comment;
-                worksheet.Cell(curRow, 6).Value = phone.call.NoticeCRM;
-                if (phone.call.ClientState != "")
-                {
-                    worksheet.Cell(curRow, 7).Value = phone.call.ClientState;
-                    worksheet.Cell(curRow, 7).Style.Font.FontColor = XLColor.Red;
-                }
-                if (phone.call.StartDateAnalyze.Year > 2000)
-                {
-                    worksheet.Cell(curRow, 8).SetValue<string>(String.Format("{0:dd.MM.yyyy}", phone.call.StartDateAnalyze));
-                }
-                if (phone.DealState != "" && (phone.call.ClientState == "" || phone.call.ClientState == null))
+                
+                if (phone.DealState != "" && phone.DealState != null)
                 {
                     worksheet.Cell(curRow, 7).Value = phone.DealState;
                     worksheet.Cell(curRow, 7).Style.Font.Italic = true;
@@ -227,6 +232,19 @@ namespace MetanitAngular.Excel
                     worksheet.Cell(curRow, 7).Style.Font.FontColor = XLColor.Black;
                     worksheet.Cell(curRow, 6).Value = phone.NoticeCRM;
                     worksheet.Cell(curRow, 6).Style.Font.Italic = true;
+                }
+                else
+                {
+                    worksheet.Cell(curRow, 6).Value = phone.call.NoticeCRM;
+                    if (phone.call.ClientState != "")
+                    {
+                        worksheet.Cell(curRow, 7).Value = phone.call.ClientState;
+                        worksheet.Cell(curRow, 7).Style.Font.FontColor = XLColor.Red;
+                    }
+                    if (phone.call.StartDateAnalyze.Year > 2000)
+                    {
+                        worksheet.Cell(curRow, 8).SetValue<string>(String.Format("{0:dd.MM.yyyy}", phone.call.StartDateAnalyze));
+                    }
                 }
                 //worksheet.Cell(curRow, 8).Style.NumberFormat.NumberFormatId = 14;
             }
@@ -251,6 +269,10 @@ namespace MetanitAngular.Excel
                 worksheet.Cell(curRow, 1).Value = call.Client;
                 if (call.Link != "" && call.Link != null)
                   worksheet.Cell(curRow, 1).Hyperlink = new XLHyperlink(call.Link);
+                if (call.Client == "8 (950) 461-54-94")
+                {
+
+                }
                 worksheet.Cell(curRow, 2).Value = call.Manager;
                 worksheet.Cell(curRow, 3).Value = call.Comment;
                 worksheet.Cell(curRow, 4).Value = call.NoticeCRM;

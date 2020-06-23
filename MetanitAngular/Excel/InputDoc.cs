@@ -30,7 +30,7 @@ namespace MetanitAngular.Excel
         {
             var data = sheet.RangeUsed();
             int lastcol = data.LastColumn().ColumnNumber();
-            for (int numRow = 2; numRow <= data.LastRow().RowNumber(); numRow++)
+            for (int numRow = data.LastRow().RowNumber(); numRow >=2; numRow--)
             {
                 var row = sheet.Row(numRow);
                 ProcessedCall call = new ProcessedCall();
@@ -65,34 +65,39 @@ namespace MetanitAngular.Excel
         }
         public static bool hasPhone(List<ProcessedCall> calls, ProcessedCall phone)
         {
+           
             if (calls.Exists(c => 
-                ((c.Client == phone.Client && phone.Link == "") || (c.Link == phone.Link && phone.Link != ""))
-                && 
-                (Regex.Match(phone.Comment,c.Comment,RegexOptions.IgnoreCase).Success
-                   || Regex.Match(c.Comment, phone.Comment, RegexOptions.IgnoreCase).Success
-                   || c.Comment == phone.Comment
-                  ) 
+                ((c.Client == phone.Client && phone.Link == "" && c.Link == "") || (c.Link == phone.Link && phone.Link != ""))
+               // && 
+                //(
+                //Regex.Match(phone.Comment.Substring(0,20),c.Comment.Substring(0, 20), RegexOptions.IgnoreCase).Success
+                //   || Regex.Match(c.Comment.Substring(0, 20), phone.Comment.Substring(0, 20), RegexOptions.IgnoreCase).Success
+                //   || 
+                  // c.Comment == phone.Comment
+                //) 
                )
            )
                 return true;
             else
             {
                
-                return false;
+                return false;   
             }
                 
         }
         public static ProcessedCall getSamePhone(List<ProcessedCall> calls, ProcessedCall phone)
         {
             return calls.Where(c =>
-                ((c.Client == phone.Client && phone.Link == "") || (c.Link == phone.Link && phone.Link != ""))
-                &&
-                (Regex.Match(phone.Comment, c.Comment, RegexOptions.IgnoreCase).Success
-                   || Regex.Match(c.Comment, phone.Comment, RegexOptions.IgnoreCase).Success
-                   || c.Comment == phone.Comment
-                  )
-                && !Regex.Match(c.ClientState, "Закрыт", RegexOptions.IgnoreCase).Success
-                && (c.StartDateAnalyze < DateTime.Today)
+                ((c.Client == phone.Client && phone.Link == "" && c.Link == "") || (c.Link == phone.Link && phone.Link != ""))
+                //&&
+                //(
+                ////Regex.Match(phone.Comment.Substring(0, 20), c.Comment.Substring(0, 20), RegexOptions.IgnoreCase).Success
+                ////   || Regex.Match(c.Comment.Substring(0, 20), phone.Comment.Substring(0, 20), RegexOptions.IgnoreCase).Success
+                ////   ||
+                //   c.Comment == phone.Comment
+                //  )
+                //&& !Regex.Match(c.ClientState, "Закрыт", RegexOptions.IgnoreCase).Success
+                //&& (c.StartDateAnalyze < DateTime.Today)
                ).FirstOrDefault();
 
         }

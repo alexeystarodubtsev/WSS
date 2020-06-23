@@ -218,7 +218,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                     }
                 }
                 
-                if (lastStage != AgreementStage && dt.Count > 1)
+                if (lastStage != AgreementStage && dt.Count > 2)
                 {
                     CallOneStage curCall = new CallOneStage();
 
@@ -521,6 +521,7 @@ namespace MetanitAngular.ProcessingDataCompanies
 
                                             }
                                         }
+                                        
                                         if (curDate > new DateTime(2020, 5, 5))
                                             phones.AddCall(new FullCall(phoneNumber, link, page.Name.ToUpper().Trim(), curDate, !m.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(), Manager, page.Cell(corrRow + 5, cell.Address.ColumnNumber).GetString(), DateNext));
                                         else

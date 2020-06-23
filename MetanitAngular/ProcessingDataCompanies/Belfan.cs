@@ -44,7 +44,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                     foreach (var curCall in stage.Value)
                     {
                         
-                        if (curCall.Date > LastCall.date && Stages[LastCall.stage] <= Stages[stage.Key])
+                        if (curCall.Date > LastCall.date && Stages[Regex.Replace(LastCall.stage, @"[\d()]", String.Empty)] <= Stages[Regex.Replace(stage.Key, @"[\d]()", String.Empty)])
                         {
                             LastCall.date = curCall.Date;
                             LastCall.stage = stage.Key;
@@ -55,7 +55,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                     }
                 }
                 int LastStage = Stages.Values.Max();
-                if (!LastCall.outgoing && Stages[LastCall.stage.ToUpper()] < LastStage - 1)
+                if (!LastCall.outgoing && Stages[Regex.Replace(LastCall.stage.ToUpper(), @"[\d]", String.Empty)] < LastStage - 1)
                 {
                     var AddedCall = new ProcessedCall();
                     AddedCall.Client = call.Value.phoneNumber;
@@ -200,7 +200,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                     if (Stages[maxStage] < Stages[stage.Key])
                         maxStage = stage.Key;
                 }
-                if (Stages[maxStage] < Stages.Values.Max() && call.Value.stages[maxStage].Count > 1)
+                if (Stages[maxStage] < Stages.Values.Max() && call.Value.stages[maxStage].Count > 2)
                 {
                     CallOneStage curCall = new CallOneStage();
                     curCall.phoneNumber = call.Value.phoneNumber;
@@ -316,11 +316,14 @@ namespace MetanitAngular.ProcessingDataCompanies
             
             Dictionary<string, string> OldNewStage = new Dictionary<string, string>();
             string oldNameStage = "Консультация по коллекции/Макет коллаж 17";
-            string newName = "Консультация по коллекции/Макет коллаж Максимально баллов без учета расширения чека (19)";
+            string newName = "КОНСУЛЬТАЦИЯ ПО КОЛЛЕКЦИИ/МАКЕТ КОЛЛАЖ МАКСИМАЛЬНО БАЛЛОВ БЕЗ УЧЕТА РАСШИРЕНИЯ ЧЕКА (18)";
             OldNewStage[oldNameStage.ToUpper()] = newName.ToUpper();
             oldNameStage = "КОНСУЛЬТАЦИЯ ПО КОЛЛЕКЦИИ / МАКЕТ КОЛЛАЖ МАКСИМАЛЬНО БАЛЛОВ БЕЗ УЧЕТА РАСШИРЕНИЯ ЧЕКА(19)";
             OldNewStage[oldNameStage.ToUpper()] = newName.ToUpper();
-            
+
+            oldNameStage = "Консультация по коллекции/Макет коллаж Максимально баллов без учета расширения чека (19)";
+            OldNewStage[oldNameStage.ToUpper()] = newName.ToUpper();
+
             oldNameStage = "Заказ 11";
             newName = "Заказ 13";
             OldNewStage[oldNameStage.ToUpper()] = newName.ToUpper();
@@ -338,7 +341,9 @@ namespace MetanitAngular.ProcessingDataCompanies
                     string NewStage = CurCell.GetString().Trim().ToUpper();
                     if (OldNewStage.ContainsKey(NewStage))
                         NewStage = OldNewStage[NewStage];
-                    phones.Stages[NewStage] = i;
+                    phones.Stages[Regex.Replace(NewStage, @"[\d()]", String.Empty).Trim()] = i;
+                    if (NewStage == "КОНСУЛЬТАЦИЯ ПО КОЛЛЕКЦИИ/МАКЕТ КОЛЛАЖ МАКСИМАЛЬНО БАЛЛОВ БЕЗ УЧЕТА РАСШИРЕНИЯ ЧЕКА" || OldNewStage.ContainsValue(NewStage))
+                        phones.Stages["КОНСУЛЬТАЦИЯ ПО КОЛЛЕКЦИИ/МАКЕТ КОЛЛАЖ"] = i;
                     i++;
                 }
                 CurCell = CurCell.CellBelow();
@@ -355,7 +360,12 @@ namespace MetanitAngular.ProcessingDataCompanies
             }
 
 
-            foreach (var file in files)
+            foreach (var file in files.Where(f => Regex.Match(f.Name,"Гакова", RegexOptions.IgnoreCase).Success 
+                        || Regex.Match(f.Name, "Гакова", RegexOptions.IgnoreCase).Success 
+                        || Regex.Match(f.Name, "Малькова", RegexOptions.IgnoreCase).Success 
+                        || Regex.Match(f.Name, "Лукина", RegexOptions.IgnoreCase).Success 
+                        || Regex.Match(f.Name, "Кожевникова", RegexOptions.IgnoreCase).Success 
+                        || Regex.Match(f.Name, "Рыбачук", RegexOptions.IgnoreCase).Success))
             {
                 string Manager = Regex.Match(file.FileName, @"(\w+)").Groups[1].Value;
                 using (var stream = file.OpenReadStream())
@@ -471,10 +481,10 @@ namespace MetanitAngular.ProcessingDataCompanies
                                             }
                                         }
                                         if (curDate > new DateTime(2020,5,5))
-                                           phones.AddCall(new FullCall(phoneNumber, link, CellStage.GetString(), curDate, outgoing.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(), Manager, page.Cell(corrRow + 5, cell.Address.ColumnNumber).GetString(), DateNext));
+                                           phones.AddCall(new FullCall(phoneNumber, link, Regex.Replace(CellStage.GetString(), @"[\d()]", String.Empty).Trim(), curDate, outgoing.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(), Manager, page.Cell(corrRow + 5, cell.Address.ColumnNumber).GetString(), DateNext));
                                         else
                                         {
-                                            phones.AddCall(new FullCall(phoneNumber, link, CellStage.GetString(), curDate, outgoing.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(), Manager));
+                                            phones.AddCall(new FullCall(phoneNumber, link, Regex.Replace(CellStage.GetString(), @"[\d()]", String.Empty).Trim(), curDate, outgoing.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(), Manager));
                                         }
                                     }
                                 }
