@@ -159,16 +159,7 @@ namespace MetanitAngular.Parsers
 
         public static Tuple<List<Phone>, List<Phone>> getPhoneNew(IFormFileCollection files, string nameoutput)
         {
-            List<ProcessedCall> processedCalls = new List<ProcessedCall>();
-            try
-            {
-                var lastCommentsFile = files.Where(c => Regex.Match(c.FileName.ToUpper(),"ПРЕДЫДУЩАЯ АНАЛИТИКА").Success).First();
-                processedCalls = InputDoc.GetProcessedCalls(lastCommentsFile);
-            }
-            catch (InvalidOperationException)
-            {
-
-            }
+            
             var FilesManagers = files.Where(c => !Regex.Match(c.FileName.ToUpper(), "ПРЕДЫДУЩАЯ АНАЛИТИКА").Success);
             //Dictionary<string, List<DataCall>> phones = new Dictionary<string, List<DataCall>>();
             Regex rNameOut = new Regex("БЕЛФАН");
@@ -176,17 +167,24 @@ namespace MetanitAngular.Parsers
             Regex rAvers = new Regex("АВЕРС");
             Regex rDS = new Regex("Деловой союз", RegexOptions.IgnoreCase);
             ICompany company;
+            List<ProcessedCall> processedCalls = new List<ProcessedCall>();
+            try
+            {
+                var lastCommentsFile = files.Where(c => Regex.Match(c.FileName.ToUpper(), "ПРЕДЫДУЩАЯ АНАЛИТИКА").Success).First();
+                processedCalls = InputDoc.GetProcessedCalls(lastCommentsFile, rNameOut.Match(nameoutput.ToUpper()).Success);
+            }
+            catch (InvalidOperationException)
+            {
+
+            }
             if (!rNameOut.Match(nameoutput.ToUpper()).Success)
             {
                 if (!rRNR.Match(nameoutput.ToUpper()).Success)
                 {
-                    if (!rAvers.Match(nameoutput.ToUpper()).Success)
-                        company = new DefaultCompany(processedCalls, rDS.Match(nameoutput).Success);
-                    else
-                        company = new Avers(processedCalls);
+                    company = new DefaultCompany(ref processedCalls, rDS.Match(nameoutput).Success);
                 }
                 else
-                    company = new RNRHouse(processedCalls);
+                    company = new RNRHouse(ref processedCalls);
             }
             else
             {
@@ -196,13 +194,26 @@ namespace MetanitAngular.Parsers
 
             string fileoutput = "C:\\Users\\xiaomi\\source\\repos\\MetanitAngular\\MetanitAngular\\OutputAnalitics";
             OutputDoc wbout = new OutputDoc();
+            OutputDoc wboutForFirst = new OutputDoc();
             wbout.setProcessedCalls(processedCalls);
+            //wbout.FillIncoming(company.getIncomeWithoutOutGoing());
+            if (Regex.Match(nameoutput, "Анвайтис", RegexOptions.IgnoreCase).Success)
+            {
+                Anvaitis anv = new Anvaitis (ref processedCalls);
+                anv.ParserCheckLists(FilesManagers);
+                wbout.FillIncoming(anv.notRecallAnalyze(),true);
+            }
+            if (rNameOut.Match(nameoutput.ToUpper()).Success)
+            {
+                wboutForFirst.FillFirstCallToClient(company.getfirstCallForBelfan());
+            }
             wbout.FillIncoming(company.getIncomeWithoutOutGoing());
             if (!rRNR.Match(nameoutput.ToUpper()).Success && !rNameOut.Match(nameoutput.ToUpper()).Success)
                 wbout.FillOutGoingPerWeeks(company.getCallsPerWeek(), rDS.Match(nameoutput).Success);
             wbout.FillCallsOnSameStage(company.getCallsOneStage());
             if (!rRNR.Match(nameoutput.ToUpper()).Success)
                 wbout.FillCallsWithoutAgreement(company.getCallsPreAgreement());
+            
             wbout.FillArchive();
             var wboutFile = wbout.getFile();
 
@@ -219,6 +230,7 @@ namespace MetanitAngular.Parsers
             {
                 fileoutput = dirpath + "\\Копия " + nameoutput + ".xlsx";
             }
+            wboutForFirst.getFile().SaveAs(dirpath + "\\Первичные звонки.xlsx");
             Tuple<List<Phone>, List<Phone>> returnPhones = new Tuple<List<Phone>, List<Phone>>(new List<Phone>(), new List<Phone>());
             return returnPhones;
         }

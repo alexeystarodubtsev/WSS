@@ -14,19 +14,19 @@ namespace MetanitAngular.Excel
     public static class InputDoc
     {
         static List<ProcessedCall> calls = new List<ProcessedCall>();
-        public static List<ProcessedCall> GetProcessedCalls(IFormFile fIle)
+        public static List<ProcessedCall> GetProcessedCalls(IFormFile fIle, bool Belfan = false)
         {
             using (var stream = fIle.OpenReadStream())
             {
                 XLWorkbook wb = new XLWorkbook(stream);
                 foreach (var page in wb.Worksheets)
                 {
-                    ProcessWorkSheet(page);
+                    ProcessWorkSheet(page, Belfan);
                 }
             }
             return calls;
         }
-        static void ProcessWorkSheet(IXLWorksheet sheet)
+        static void ProcessWorkSheet(IXLWorksheet sheet, bool Belfan)
         {
             var data = sheet.RangeUsed();
             int lastcol = data.LastColumn().ColumnNumber();
@@ -57,9 +57,26 @@ namespace MetanitAngular.Excel
                         DateTime.TryParse(curCell.GetString(), new CultureInfo("en-US"), DateTimeStyles.None, out call.StartDateAnalyze);
 
                 }
-
-                if (!calls.Exists(c => (c.Client == call.Client && call.Link == "") || (c.Link == call.Link && call.Link !=null) ))
+                
+                if ((!Belfan && !calls.Exists(c => (c.Client == call.Client && call.Link == "") || (c.Link == call.Link && call.Link !=null) )) || (Belfan && !calls.Exists(c => (c.Client == call.Client))))
                     calls.Add(call);
+                else
+                {
+                    ProcessedCall exCall;
+                    if (!Belfan)
+                    {
+                        exCall = calls.Where(c => (c.Client == call.Client && call.Link == "") || (c.Link == call.Link && call.Link != null)).First();
+                    }
+                    else
+                    {
+                        exCall = calls.Where(c => (c.Client == call.Client)).First();
+                    }
+                    if (exCall.StartDateAnalyze < call.StartDateAnalyze)
+                    {
+                        calls.Remove(exCall);
+                        calls.Add(call);
+                    }        
+                }
                 
             }
         }

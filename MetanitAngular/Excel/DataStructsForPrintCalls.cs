@@ -54,6 +54,18 @@ namespace MetanitAngular.Excel
 
             }
         }
+        public struct firstCallsToClient
+        {
+            public string phoneNumber;
+            public string date;
+            public string comment;
+            public XLHyperlink Link;
+            public string Manager;
+            public string DealState;
+            public string DateDeal;
+            public string NoticeCRM;
+            public string stage;
+        }
         public struct ProcessedCall
         {
             public string Client;
@@ -63,8 +75,6 @@ namespace MetanitAngular.Excel
             public string ClientState;
             public DateTime StartDateAnalyze;
             public string Link;
-            
-
 
         }
 

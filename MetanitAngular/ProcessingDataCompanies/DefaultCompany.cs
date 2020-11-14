@@ -18,7 +18,11 @@ namespace MetanitAngular.ProcessingDataCompanies
         protected string PreAgreementStage = "";
         protected List<ProcessedCall> processedCalls;
         private bool DS;
-        public DefaultCompany(List<ProcessedCall> processedCalls,bool DS = false)
+        public List<firstCallsToClient> getfirstCallForBelfan()
+        {
+            return new List<firstCallsToClient>();
+        }
+        public DefaultCompany(ref List<ProcessedCall> processedCalls,bool DS = false)
         {
             this.processedCalls = processedCalls;
             this.DS = DS;
@@ -46,7 +50,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                     foreach (var curCall in stage.Value)
                     {
 
-                        if (curCall.Date > LastCall.date)
+                        if (curCall.Date > LastCall.date || (curCall.Date == LastCall.date && curCall.Outgoing))
                         {
                             LastCall.date = curCall.Date;
                             LastCall.stage = stage.Key;
@@ -349,10 +353,24 @@ namespace MetanitAngular.ProcessingDataCompanies
             int numLastStage = -4;
             foreach (var stage in ph.stages)
             {
-                if (Stages[stage.Key] > numLastStage)
+                try
                 {
-                    lastStage = stage.Key;
-                    numLastStage = Stages[stage.Key];
+                    if (Stages[stage.Key] > numLastStage)
+                    {
+                        lastStage = stage.Key;
+                        numLastStage = Stages[stage.Key];
+                    }
+                }
+                catch (System.Collections.Generic.KeyNotFoundException)
+                {
+                    if (stage.Key == "ЗВОНОК ДЛЯ ВЫЯВЛЕНИЯ ЛПР")
+                    {
+                        if (Stages["ЗВОНОК ДЛЯ ВЫЯВЛЕНИЕ ЛПР"] > numLastStage)
+                        {
+                            lastStage = stage.Key;
+                            numLastStage = Stages["ЗВОНОК ДЛЯ ВЫЯВЛЕНИЕ ЛПР"];
+                        }
+                    }
                 }
             }
 
@@ -484,6 +502,11 @@ namespace MetanitAngular.ProcessingDataCompanies
                                 else
                                     link = "";
                                 
+                                if (link == "")
+                                {
+
+                                }
+
                                 if (phoneNumber != "")
                                 {
                                     Regex rx = new Regex("ВХОДЯЩ");

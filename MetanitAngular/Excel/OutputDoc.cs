@@ -12,9 +12,12 @@ namespace MetanitAngular.Excel
         XLWorkbook wbout = new XLWorkbook();
         IXLWorksheet worksheet;
         List<ProcessedCall> ProccessedCalls;
-        public void FillIncoming(List<DataStructsForPrintCalls.CallIncoming> Calls) //Нужно видеть входящие звонки на которые не перезвонили
+        public void FillIncoming(List<DataStructsForPrintCalls.CallIncoming> Calls, bool foranvaitis = false) //Нужно видеть входящие звонки на которые не перезвонили
         {
-            worksheet = wbout.Worksheets.Add("Вх, на которые не перезвон"); //Нужно видеть входящие звонки на которые не перезвонили
+            if (!foranvaitis)
+                worksheet = wbout.Worksheets.Add("Вх, на которые не перезвон"); //Нужно видеть входящие звонки на которые не перезвонили
+            else
+                worksheet = wbout.Worksheets.Add("клиенты без звонка на 2 этапе"); 
             worksheet.Cell(1, 1).Value = "Клиент";
             worksheet.Cell(1, 2).Value = "Дата";
             worksheet.Cell(1, 3).Value = "Ответственный";
@@ -42,6 +45,7 @@ namespace MetanitAngular.Excel
                     worksheet.Cell(curRow, 7).SetValue<string>(phone.DateDeal);
                     worksheet.Cell(curRow, 5).Value = phone.NoticeCRM;
                     worksheet.Cell(curRow, 5).Style.Font.Italic = true;
+
                 }
                 else
                 {
@@ -62,6 +66,41 @@ namespace MetanitAngular.Excel
 
 
         }
+
+
+        public void FillFirstCallToClient(List<DataStructsForPrintCalls.firstCallsToClient> Calls) //Нужно первые звонки клиенту Белфан
+        {
+            worksheet = wbout.Worksheets.Add("Новые клиенты");
+            worksheet.Cell(1, 1).Value = "Клиент";
+            worksheet.Cell(1, 2).Value = "Дата";
+            worksheet.Cell(1, 3).Value = "Этап";
+            worksheet.Cell(1, 4).Value = "Ответственный";
+            worksheet.Cell(1, 5).Value = "Примечание";
+            worksheet.Cell(1, 6).Value = "Примечание по CRM";
+            worksheet.Cell(1, 7).Value = "В работе или закрыт";
+            worksheet.Cell(1, 8).Value = "Дата назначенного контакта или дата закрытия сделки";
+
+            int curRow = 1;
+            foreach (var phone in Calls)
+            {
+                curRow++;
+                worksheet.Cell(curRow, 1).Value = phone.phoneNumber;
+                worksheet.Cell(curRow, 1).Hyperlink = phone.Link;
+                worksheet.Cell(curRow, 2).SetValue<string>(phone.date);
+                worksheet.Cell(curRow, 3).Value = phone.stage;
+                worksheet.Cell(curRow, 5).Value = phone.comment;
+                worksheet.Cell(curRow, 4).Value = phone.Manager;
+                worksheet.Cell(curRow, 7).Value = phone.DealState;
+                worksheet.Cell(curRow, 8).SetValue<string>(phone.DateDeal);
+                worksheet.Cell(curRow, 6).Value = phone.NoticeCRM;
+            }
+            RangeSheets(curRow, 8, true);
+
+
+        }
+
+
+
         public void FillOutGoingPerWeeks(List<DataStructsForPrintCalls.CallPerWeek> CallsPerWeek,bool DS = false) //2. нужно вдеть исходящие звонки которе сделаны всего один раз за 2 недели или за неделю( в зависимости от специфики)
         {
             worksheet = wbout.Worksheets.Add("Сделанные раз за 3,4 недели"); //2. нужно вдеть исходящие звонки которе сделаны всего один раз за 2 недели или за неделю( в зависимости от специфики)
@@ -111,6 +150,7 @@ namespace MetanitAngular.Excel
                 
                 if (phone.DealState != "" && phone.DealState != null)
                 {
+                    
                     worksheet.Cell(curRow, curCol + 1).Value = phone.DealState;
                     worksheet.Cell(curRow, curCol + 1).Style.Font.Italic = true;
                     worksheet.Cell(curRow, curCol + 2).SetValue<string>(phone.DateDeal);
@@ -118,6 +158,7 @@ namespace MetanitAngular.Excel
                     worksheet.Cell(curRow, curCol).Style.Font.FontColor = XLColor.Black;
                     worksheet.Cell(curRow, curCol++).Value = phone.NoticeCRM;
                     worksheet.Cell(curRow, curCol).Style.Font.Italic = true;
+                    curCol++;
                 }
                 else
                 {
@@ -285,7 +326,7 @@ namespace MetanitAngular.Excel
 
             RangeSheets(curRow, 6);
         }
-        public void RangeSheets(int row, int col) //Установка размеров
+        public void RangeSheets(int row, int col, bool firstCalls = false) //Установка размеров
         {
             var rngTable = worksheet.Range(1, 1, row, col);
             rngTable.Style.Border.RightBorder = XLBorderStyleValues.Thin;
@@ -297,6 +338,8 @@ namespace MetanitAngular.Excel
             worksheet.Columns(1, col).Width = 15;
             worksheet.Column(col - 3).Width = 60;
             worksheet.Column(col - 2).Width = 40;
+            if (firstCalls)
+                worksheet.Column(3).Width = 60;
             worksheet.Column(1).Width = 28;
             worksheet.Columns(1, col).Style.Alignment.WrapText = true;
 

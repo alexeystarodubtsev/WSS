@@ -16,6 +16,7 @@ namespace MetanitAngular.ProcessingDataCompanies
         List<CallPerWeek> getCallsPerWeek();
         List<CallOneStage> getCallsOneStage();
         List<CallPreAgreement> getCallsPreAgreement();
+        List<firstCallsToClient> getfirstCallForBelfan();
         void FillStageDictionary(XLWorkbook wb);
         void ParserCheckLists(IEnumerable<IFormFile> files);
     }

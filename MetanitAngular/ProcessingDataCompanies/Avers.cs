@@ -13,14 +13,18 @@ namespace MetanitAngular.ProcessingDataCompanies
 {
     public class Avers : DefaultCompany, ICompany
     {
-        public Avers(List<ProcessedCall> processedCalls) : base(processedCalls)
+        public Avers(ref List<ProcessedCall> processedCalls) : base(ref processedCalls)
         {
 
         }
+        public List<firstCallsToClient> getfirstCallForBelfan()
+        {
+            return new List<firstCallsToClient>();
+        }
         public new void ParserCheckLists(IEnumerable<IFormFile> files)
         {
-            var DefaultFiles = files.Where(f => Regex.Match(f.FileName, "newf").Success);
-            var filesAvers = files.Where(f => !Regex.Match(f.FileName, "newf").Success);
+            var DefaultFiles = files;
+            var filesAvers = files.Where(f => false);
             base.ParserCheckLists(DefaultFiles);
             //using (var stream = files.First().OpenReadStream())
             //{

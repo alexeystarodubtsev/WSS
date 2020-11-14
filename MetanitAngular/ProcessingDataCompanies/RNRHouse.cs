@@ -13,14 +13,14 @@ namespace MetanitAngular.ProcessingDataCompanies
 {
     public class RNRHouse : DefaultCompany, ICompany
     {
-        public RNRHouse(List<ProcessedCall> processedCalls) : base(processedCalls)
+        public RNRHouse(ref List<ProcessedCall> processedCalls) : base(ref processedCalls)
         {
 
         }
         public new void ParserCheckLists(IEnumerable<IFormFile> files)
         {
-            var DefaultFiles = files.Where(f => Regex.Match(f.FileName, "newf").Success);
-            var filesRNR = files.Where(f => !Regex.Match(f.FileName, "newf").Success);
+            var DefaultFiles = files;
+            var filesRNR = files.Where(f => false);
             base.ParserCheckLists(DefaultFiles);
             //using (var stream = files.First().OpenReadStream())
             //{

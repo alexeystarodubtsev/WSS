@@ -15,6 +15,7 @@ namespace MetanitAngular.ProcessingDataCompanies
     public class Belfan : ICompany
     {
         Phones phones = new Phones();
+        Phones phonesForFirst = new Phones();
         List<ProcessedCall> processedCalls;
         public Belfan(ref List<ProcessedCall> processedCalls)
         {
@@ -24,7 +25,71 @@ namespace MetanitAngular.ProcessingDataCompanies
         {
             phones.AddCall(call);
         }
+        public List<firstCallsToClient> getfirstCallForBelfan()
+        {
 
+            var returnCalls = new List<firstCallsToClient>();
+            var Stages = phones.Stages;
+
+            foreach (var call in phonesForFirst.getPhones())
+            {
+                FullCall LastCall = new FullCall(call.Key,
+                    "",
+                call.Value.stages.First().Key,
+                call.Value.stages.First().Value.First().Date,
+                call.Value.stages.First().Value.First().Outgoing,
+                call.Value.stages.First().Value.First().comment,
+                call.Value.GetManager());
+                var rStages = call.Value.stages.Where(s => Regex.Match(s.Key, "Первич|консульт|предварит", RegexOptions.IgnoreCase).Success);
+                if (rStages.Any()) {
+
+                    foreach (var stage in call.Value.stages)
+                    {
+                        foreach (var curCall in stage.Value)
+                        {
+
+                            if (curCall.Date > LastCall.date)
+                            {
+                                if (rStages.Where(s => s.Key == stage.Key).Any())
+                                    LastCall.date = curCall.Date;
+                                LastCall.stage = stage.Key;
+                                LastCall.outgoing = curCall.Outgoing;
+                                LastCall.Comment = curCall.comment;
+
+                            }
+                        }
+                    }
+                    var FirstCalltoClient = new firstCallsToClient();
+                    FirstCalltoClient.comment = LastCall.Comment;
+                    FirstCalltoClient.phoneNumber = call.Value.phoneNumber;
+                    if (call.Value.link != "")
+                        FirstCalltoClient.Link = new XLHyperlink(new Uri(call.Value.link)); 
+                    else
+                        FirstCalltoClient.Link = null;
+                    FirstCalltoClient.date = String.Format("{0:dd.MM.yy}", LastCall.date);
+                    FirstCalltoClient.Manager = call.Value.GetManager();
+                    FirstCalltoClient.DealState = call.Value.DealState;
+                    FirstCalltoClient.stage = String.Join(", ", rStages.Select(s => s.Key));
+
+                    if (FirstCalltoClient.DealState.ToUpper() != "В РАБОТЕ" && FirstCalltoClient.DealState != "")
+                    {
+                        FirstCalltoClient.NoticeCRM = FirstCalltoClient.DealState;
+                        FirstCalltoClient.DateDeal = call.Value.DateDeal.ToString("dd.MM.yyyy"); 
+                    }
+                    if (FirstCalltoClient.DealState.ToUpper() == "В РАБОТЕ")
+                    {
+                        FirstCalltoClient.DateDeal = call.Value.DateDeal.ToString("dd.MM.yyyy");
+                        if (call.Value.DateDeal.Year < 2000)
+                        {
+                            FirstCalltoClient.DateDeal = "";
+                        }
+                    }
+                    returnCalls.Add(FirstCalltoClient);
+                }
+               
+            }
+            return returnCalls;
+        }
         public List<CallIncoming> getIncomeWithoutOutGoing()
         {
             List<CallIncoming> returnCalls = new List<CallIncoming>();
@@ -62,14 +127,14 @@ namespace MetanitAngular.ProcessingDataCompanies
                     AddedCall.Link = call.Value.link;
                     AddedCall.Comment = LastCall.Comment;
                     if (!InputDoc.hasPhone(processedCalls, AddedCall))
-                        returnCalls.Add(new CallIncoming(call.Value.phoneNumber, call.Value.link, String.Format("{0:dd.MM.yy}", LastCall.date), LastCall.Comment,call.Value.GetManager(), new ProcessedCall(),  call.Value.DealState, call.Value.DateDeal));
+                        returnCalls.Add(new CallIncoming(call.Value.phoneNumber, call.Value.link, String.Format("{0:dd.MM.yy}", LastCall.date), LastCall.Comment, call.Value.GetManager(), new ProcessedCall(), call.Value.DealState, call.Value.DateDeal));
                     else
                     {
                         var samecall = InputDoc.getSamePhone(processedCalls, AddedCall);
                         if (samecall.ClientState != null && samecall.ClientState.ToUpper() == "В РАБОТЕ")
                         {
-                            returnCalls.Add(new CallIncoming(call.Value.phoneNumber, call.Value.link, String.Format("{0:dd.MM.yy}", LastCall.date), 
-                                LastCall.Comment, call.Value.GetManager(), samecall,call.Value.DealState,call.Value.DateDeal));
+                            returnCalls.Add(new CallIncoming(call.Value.phoneNumber, call.Value.link, String.Format("{0:dd.MM.yy}", LastCall.date),
+                                LastCall.Comment, call.Value.GetManager(), samecall, call.Value.DealState, call.Value.DateDeal));
                         }
                     }
                 }
@@ -360,12 +425,7 @@ namespace MetanitAngular.ProcessingDataCompanies
             }
 
 
-            foreach (var file in files.Where(f => Regex.Match(f.Name,"Гакова", RegexOptions.IgnoreCase).Success 
-                        || Regex.Match(f.Name, "Гакова", RegexOptions.IgnoreCase).Success 
-                        || Regex.Match(f.Name, "Малькова", RegexOptions.IgnoreCase).Success 
-                        || Regex.Match(f.Name, "Лукина", RegexOptions.IgnoreCase).Success 
-                        || Regex.Match(f.Name, "Кожевникова", RegexOptions.IgnoreCase).Success 
-                        || Regex.Match(f.Name, "Рыбачук", RegexOptions.IgnoreCase).Success))
+            foreach (var file in files)
             {
                 string Manager = Regex.Match(file.FileName, @"(\w+)").Groups[1].Value;
                 using (var stream = file.OpenReadStream())
@@ -480,12 +540,10 @@ namespace MetanitAngular.ProcessingDataCompanies
 
                                             }
                                         }
-                                        if (curDate > new DateTime(2020,5,5))
-                                           phones.AddCall(new FullCall(phoneNumber, link, Regex.Replace(CellStage.GetString(), @"[\d()]", String.Empty).Trim(), curDate, outgoing.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(), Manager, page.Cell(corrRow + 5, cell.Address.ColumnNumber).GetString(), DateNext));
-                                        else
-                                        {
-                                            phones.AddCall(new FullCall(phoneNumber, link, Regex.Replace(CellStage.GetString(), @"[\d()]", String.Empty).Trim(), curDate, outgoing.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(), Manager));
-                                        }
+                                        if (curDate > DateTime.Now.AddMonths(-1) && Regex.Match(file.Name, "Гакова|Малькова|Лукина|Кожевникова|Рыбачук", RegexOptions.IgnoreCase).Success)
+                                            phones.AddCall(new FullCall(phoneNumber, link, Regex.Replace(CellStage.GetString(), @"[\d()]", String.Empty).Trim(), curDate, outgoing.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(), Manager, page.Cell(corrRow + 5, cell.Address.ColumnNumber).GetString(), DateNext));
+                                        phonesForFirst.AddCall(new FullCall(phoneNumber, link, Regex.Replace(CellStage.GetString(), @"[\d()]", String.Empty).Trim(), curDate, outgoing.Success, page.Cell(corrRow, cell.Address.ColumnNumber).GetString(), Manager, page.Cell(corrRow + 5, cell.Address.ColumnNumber).GetString(), DateNext));
+
                                     }
                                 }
                                 CellStage = CellStage.CellBelow();

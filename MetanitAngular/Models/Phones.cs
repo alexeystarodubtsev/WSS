@@ -29,7 +29,7 @@ namespace MetanitAngular.Models
                     procCall.ClientState = "Закрыт";
                     procCall.Link = call.Value.link;
                     procCall.Comment = "";
-                    processedCalls.RemoveAll(c => (c.Client == call.Value.phoneNumber && call.Value.link == "") || (c.Link == call.Value.link && call.Value.link == null));
+                    processedCalls.RemoveAll(c => (c.Client == call.Value.phoneNumber && call.Value.link == "") || (c.Link == call.Value.link && call.Value.link != ""));
                     processedCalls.Add(procCall);
                 }
                 if (call.Value.DealState.ToUpper().Trim() == "В РАБОТЕ" && call.Value.DateDeal > DateTime.Today.AddDays(-1))
@@ -43,7 +43,7 @@ namespace MetanitAngular.Models
                     procCall.ClientState = "В работе";
                     procCall.Link = call.Value.link;
                     procCall.Comment = "";
-                    processedCalls.RemoveAll(c => (c.Client == call.Value.phoneNumber && call.Value.link == "") || (c.Link == call.Value.link && call.Value.link == null));
+                    processedCalls.RemoveAll(c => (c.Client == call.Value.phoneNumber && call.Value.link == "") || (c.Link == call.Value.link && call.Value.link != ""));
                     processedCalls.Add(procCall);
                 }
             }
