@@ -211,7 +211,7 @@ namespace MetanitAngular.Parsers
             if (!rRNR.Match(nameoutput.ToUpper()).Success && !rNameOut.Match(nameoutput.ToUpper()).Success)
                 wbout.FillOutGoingPerWeeks(company.getCallsPerWeek(), rDS.Match(nameoutput).Success);
             wbout.FillCallsOnSameStage(company.getCallsOneStage());
-            if (!rRNR.Match(nameoutput.ToUpper()).Success)
+            if (!rRNR.Match(nameoutput.ToUpper()).Success && !rDS.Match(nameoutput).Success)
                 wbout.FillCallsWithoutAgreement(company.getCallsPreAgreement());
             
             wbout.FillArchive();
