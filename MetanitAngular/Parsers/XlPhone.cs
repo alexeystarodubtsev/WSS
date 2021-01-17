@@ -230,7 +230,7 @@ namespace MetanitAngular.Parsers
             {
                 fileoutput = dirpath + "\\Копия " + nameoutput + ".xlsx";
             }
-            wboutForFirst.getFile().SaveAs(dirpath + "\\Первичные звонки.xlsx");
+           // wboutForFirst.getFile().SaveAs(dirpath + "\\Первичные звонки.xlsx");
             Tuple<List<Phone>, List<Phone>> returnPhones = new Tuple<List<Phone>, List<Phone>>(new List<Phone>(), new List<Phone>());
             return returnPhones;
         }
