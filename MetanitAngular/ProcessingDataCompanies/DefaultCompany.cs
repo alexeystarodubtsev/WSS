@@ -374,6 +374,10 @@ namespace MetanitAngular.ProcessingDataCompanies
                 }
             }
 
+            if (lastStage == "")
+            {
+                return ph.stages.Last().Key;
+            }
             return lastStage;
         }
 

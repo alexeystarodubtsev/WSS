@@ -192,7 +192,7 @@ namespace MetanitAngular.Parsers
             }
             company.ParserCheckLists(FilesManagers);
 
-            string fileoutput = "C:\\Users\\xiaomi\\source\\repos\\MetanitAngular\\MetanitAngular\\OutputAnalitics";
+           string fileoutput = "C:\\Users\\xiaomi\\source\\repos\\MetanitAngular\\MetanitAngular\\OutputAnalitics";
             OutputDoc wbout = new OutputDoc();
             OutputDoc wboutForFirst = new OutputDoc();
             wbout.setProcessedCalls(processedCalls);
