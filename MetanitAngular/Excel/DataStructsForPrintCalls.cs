@@ -75,6 +75,7 @@ namespace MetanitAngular.Excel
             public string ClientState;
             public DateTime StartDateAnalyze;
             public string Link;
+            public string CommentOfCustomer;
 
         }
 

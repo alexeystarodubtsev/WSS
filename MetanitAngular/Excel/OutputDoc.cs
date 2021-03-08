@@ -62,7 +62,8 @@ namespace MetanitAngular.Excel
                 }
                 //worksheet.Cell(curRow, 7).Style.NumberFormat.NumberFormatId = 14;
             }
-            RangeSheets(curRow, 7);
+            fillCustomerComments();
+            RangeSheets(curRow, 8);
 
 
         }
@@ -94,7 +95,8 @@ namespace MetanitAngular.Excel
                 worksheet.Cell(curRow, 8).SetValue<string>(phone.DateDeal);
                 worksheet.Cell(curRow, 6).Value = phone.NoticeCRM;
             }
-            RangeSheets(curRow, 8, true);
+            fillCustomerComments();
+            RangeSheets(curRow, 9, true);
 
 
         }
@@ -182,8 +184,8 @@ namespace MetanitAngular.Excel
 
 
             }
-
-            RangeSheets(curRow, curCol);
+            fillCustomerComments();
+            RangeSheets(curRow, curCol + 1);
         }
         public void FillCallsOnSameStage(List<DataStructsForPrintCalls.CallOneStage> CallsOneStage)   //4. Видеть звонки которые задержались на одном и том же этапе
         {
@@ -237,7 +239,8 @@ namespace MetanitAngular.Excel
                 }
                 //worksheet.Cell(curRow, 9).Style.NumberFormat.NumberFormatId = 14;
             }
-            RangeSheets(curRow, 9);
+            fillCustomerComments();
+            RangeSheets(curRow, 10);
         }
         public void FillCallsWithoutAgreement(List<DataStructsForPrintCalls.CallPreAgreement> CallsPreAgreement) //Не закрытые в договор
         {
@@ -289,8 +292,8 @@ namespace MetanitAngular.Excel
                 }
                 //worksheet.Cell(curRow, 8).Style.NumberFormat.NumberFormatId = 14;
             }
-
-            RangeSheets(curRow, 8);
+            fillCustomerComments();
+            RangeSheets(curRow, 9);
         }
         public void FillArchive() //Архив
         {
@@ -323,9 +326,11 @@ namespace MetanitAngular.Excel
                   worksheet.Cell(curRow, 6).SetValue<string>(String.Format("{0:dd.MM.yyyy}", call.StartDateAnalyze));
                 
             }
-
-            RangeSheets(curRow, 6);
+            fillCustomerComments();
+            RangeSheets(curRow, 7);
         }
+        
+
         public void RangeSheets(int row, int col, bool firstCalls = false) //Установка размеров
         {
             var rngTable = worksheet.Range(1, 1, row, col);
@@ -333,17 +338,43 @@ namespace MetanitAngular.Excel
             rngTable.Style.Border.BottomBorder = XLBorderStyleValues.Thin;
             rngTable.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             worksheet.Range(1, 1, 1, col).Style.Font.Bold = true;
-            
+
             //worksheet.Columns(1, col - 5).AdjustToContents(); //ширина столбца
-            worksheet.Columns(1, col).Width = 15;
-            worksheet.Column(col - 3).Width = 60;
-            worksheet.Column(col - 2).Width = 40;
+            worksheet.Columns(1, col).Width = 40;
+            worksheet.Columns(1, col - 1).Width = 15;
+            worksheet.Column(col - 4).Width = 60;
+            worksheet.Column(col - 3).Width = 40;
             if (firstCalls)
                 worksheet.Column(3).Width = 60;
             worksheet.Column(1).Width = 28;
             worksheet.Columns(1, col).Style.Alignment.WrapText = true;
 
         }
+
+        public void fillCustomerComments()
+        {
+            int lastNumber = worksheet.LastColumnUsed().ColumnNumber();
+            int lastRow = worksheet.LastRowUsed().RowNumber();
+            var captionCommentCell = worksheet.Cell(1, lastNumber + 1);
+            captionCommentCell.Value = "Комментарии заказчика";
+            for (int i = 2; i <= lastRow; i++)
+            {
+                var client = worksheet.Cell(i, 1);
+                var cellComment = worksheet.Cell(i, lastNumber + 1);
+                try
+                {
+                    var oldCall = ProccessedCalls.Find(c => (client.HasHyperlink && c.Link == client.Hyperlink.ExternalAddress.AbsoluteUri
+                        || !client.HasHyperlink && c.Client == client.GetString()));
+                    cellComment.Value = oldCall.CommentOfCustomer;
+                }
+                catch (ArgumentNullException)
+                {
+
+                }
+
+            }
+        }
+
         public void setProcessedCalls(List<ProcessedCall> proccessedCalls)
         {
             ProccessedCalls = proccessedCalls;

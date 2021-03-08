@@ -40,15 +40,15 @@ namespace MetanitAngular.Excel
                 {
                     call.Link = curCell.Hyperlink.ExternalAddress.AbsoluteUri;
                 }
-                curCell = row.Cell(lastcol - 4);
+                curCell = row.Cell(lastcol - 5);
                 call.Manager = curCell.GetString();
-                curCell = curCell.CellRight();
+                curCell = curCell.CellRight(); // -4
                 call.Comment = curCell.GetString();
-                curCell = curCell.CellRight();
+                curCell = curCell.CellRight(); // -3
                 call.NoticeCRM = curCell.GetString();
-                curCell = curCell.CellRight();
+                curCell = curCell.CellRight(); // -2
                 call.ClientState = curCell.GetString();
-                curCell = curCell.CellRight();
+                curCell = curCell.CellRight(); // -1
                 if (curCell.GetString() != "" && curCell.DataType == XLDataType.DateTime)
                     call.StartDateAnalyze = curCell.GetDateTime();
                 else
@@ -57,7 +57,9 @@ namespace MetanitAngular.Excel
                         DateTime.TryParse(curCell.GetString(), new CultureInfo("en-US"), DateTimeStyles.None, out call.StartDateAnalyze);
 
                 }
-                
+                curCell = curCell.CellRight(); // last col
+                call.CommentOfCustomer = curCell.GetString();
+
                 if ((!Belfan && !calls.Exists(c => (c.Client == call.Client && call.Link == "") || (c.Link == call.Link && call.Link !=null) )) || (Belfan && !calls.Exists(c => (c.Client == call.Client))))
                     calls.Add(call);
                 else
@@ -75,7 +77,14 @@ namespace MetanitAngular.Excel
                     {
                         calls.Remove(exCall);
                         calls.Add(call);
-                    }        
+                    }
+                    else
+                    {
+                        if (exCall.CommentOfCustomer == "")
+                        {
+                            exCall.CommentOfCustomer = call.CommentOfCustomer;
+                        }
+                    }
                 }
                 
             }
