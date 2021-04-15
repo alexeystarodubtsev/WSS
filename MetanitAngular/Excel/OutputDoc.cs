@@ -15,7 +15,7 @@ namespace MetanitAngular.Excel
         public void FillIncoming(List<DataStructsForPrintCalls.CallIncoming> Calls, bool foranvaitis = false) //Нужно видеть входящие звонки на которые не перезвонили
         {
             if (!foranvaitis)
-                worksheet = wbout.Worksheets.Add("Вх, на которые не перезвон"); //Нужно видеть входящие звонки на которые не перезвонили
+                worksheet = wbout.Worksheets.Add("Клиенты, которым не перезвонил"); //Нужно видеть входящие звонки на которые не перезвонили
             else
                 worksheet = wbout.Worksheets.Add("клиенты без звонка на 2 этапе"); 
             worksheet.Cell(1, 1).Value = "Клиент";

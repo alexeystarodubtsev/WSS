@@ -120,7 +120,8 @@ namespace MetanitAngular.ProcessingDataCompanies
                     }
                 }
                 int LastStage = Stages.Values.Max();
-                if (!LastCall.outgoing && Stages[Regex.Replace(LastCall.stage.ToUpper(), @"[\d]", String.Empty)] < LastStage - 1)
+                // !LastCall.outgoing && убрали, так как захотели, чтоб анализировали не только входящие
+                if (Stages[Regex.Replace(LastCall.stage.ToUpper(), @"[\d]", String.Empty)] < LastStage - 1)
                 {
                     var AddedCall = new ProcessedCall();
                     AddedCall.Client = call.Value.phoneNumber;

@@ -60,7 +60,8 @@ namespace MetanitAngular.ProcessingDataCompanies
                         }
                     }
                 }
-                if (!LastCall.outgoing && !call.Value.stages.ContainsKey(AgreementStage))
+                // !LastCall.outgoing && убрали, так как захотели, чтоб анализировали не только входящие
+                if (!call.Value.stages.ContainsKey(AgreementStage))
                 {
                     var AddedCall = new ProcessedCall();
                     AddedCall.Client = call.Value.phoneNumber;
