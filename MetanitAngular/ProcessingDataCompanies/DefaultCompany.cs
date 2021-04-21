@@ -334,7 +334,7 @@ namespace MetanitAngular.ProcessingDataCompanies
                             {
                                 AgreementStage = page.Name.ToUpper().Trim();
                             }
-                            rx = new Regex("КП ОТПРАВЛЕН");
+                            rx = new Regex("КП ОТПРАВЛЕН|прайс отправлен", RegexOptions.IgnoreCase);
                             m = rx.Match(page.Name.ToUpper().Trim());
                             if (m.Success)
                             {
